@@ -1,0 +1,16 @@
+{
+    "name": "tom-translate-app",
+    "private": true,
+    "scripts": {
+      "dev:web": "pnpm --filter web dev",
+      "dev:ext": "pnpm --filter extension dev",
+      "dev:backend": "cd packages/backend && uv run uvicorn app.main:app --reload --port 8000",
+      "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:web\"",
+      "build:web": "pnpm --filter web build",
+      "build:ext": "pnpm --filter extension build"
+    },
+    "devDependencies": {
+      "concurrently": "^9.0.0",
+      "typescript": "^5.5.0"
+    }
+  }

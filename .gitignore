@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+dist/
+.output/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+!.vscode/settings.json
+.idea/
+.cursor/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.zip
+
+# Logs
+*.log

@@ -1,0 +1,24 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # PostgreSQL 后期再启用
+  # postgres:
+  #   image: postgres:16-alpine
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: translate
+  #     POSTGRES_PASSWORD: translate_dev
+  #     POSTGRES_DB: translate_db
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+
+volumes:
+  redis_data:
+  # pg_data:
