@@ -1,0 +1,217 @@
+"use client";
+
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowRightLeft, Copy, Trash2, Check, Loader2 } from "lucide-react";
+import { translate, getLanguages } from "@/lib/api";
+import type { EngineType } from "@/lib/types";
+import { LanguageSelect } from "./LanguageSelect";
+import { EngineSwitch } from "./EngineSwitch";
+
+const DEFAULT_LANGUAGES: Record<string, string> = {
+  auto: "自动检测",
+  "zh-CN": "中文",
+  en: "English",
+  ja: "日本語",
+  ko: "한국어",
+  fr: "Français",
+  de: "Deutsch",
+  es: "Español",
+  ru: "Русский",
+};
+
+export function TranslatePanel() {
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
+  const [sourceLang, setSourceLang] = useState("auto");
+  const [targetLang, setTargetLang] = useState("zh-CN");
+  const [engine, setEngine] = useState<EngineType>("deepseek");
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const { data: languages = DEFAULT_LANGUAGES } = useQuery({
+    queryKey: ["languages"],
+    queryFn: getLanguages,
+    staleTime: Infinity,
+  });
+
+  const mutation = useMutation({
+    mutationFn: translate,
+    onSuccess: (result) => {
+      setOutputText(result.translatedTexts.join("\n"));
+      setError(null);
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
+
+  const triggerTranslation = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) {
+        setOutputText("");
+        setError(null);
+        return;
+      }
+      mutation.mutate({
+        texts: [trimmed],
+        sourceLang,
+        targetLang,
+        engine,
+      });
+    },
+    [sourceLang, targetLang, engine, mutation]
+  );
+
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setInputText(value);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => triggerTranslation(value), 500);
+    },
+    [triggerTranslation]
+  );
+
+  useEffect(() => {
+    if (inputText.trim()) {
+      triggerTranslation(inputText);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceLang, targetLang, engine]);
+
+  const handleSwapLanguages = () => {
+    if (sourceLang === "auto") return;
+    setSourceLang(targetLang);
+    setTargetLang(sourceLang);
+    setInputText(outputText);
+    setOutputText(inputText);
+  };
+
+  const handleClear = () => {
+    setInputText("");
+    setOutputText("");
+    setError(null);
+  };
+
+  const handleCopy = async () => {
+    if (!outputText) return;
+    await navigator.clipboard.writeText(outputText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-5xl">
+      {/* 引擎切换 */}
+      <div className="mb-6 flex justify-center">
+        <EngineSwitch value={engine} onChange={setEngine} />
+      </div>
+
+      {/* 翻译面板 */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+        {/* 语言栏 */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 border-b border-gray-100 px-6 py-4">
+          <LanguageSelect
+            value={sourceLang}
+            onChange={setSourceLang}
+            languages={languages}
+            label="源语言"
+          />
+          <button
+            onClick={handleSwapLanguages}
+            disabled={sourceLang === "auto"}
+            className="mb-0.5 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-30"
+            title="交换语言"
+          >
+            <ArrowRightLeft className="h-5 w-5" />
+          </button>
+          <LanguageSelect
+            value={targetLang}
+            onChange={setTargetLang}
+            languages={languages}
+            excludeAuto
+            label="目标语言"
+          />
+        </div>
+
+        {/* 文本区域 */}
+        <div className="grid min-h-[280px] grid-cols-1 md:grid-cols-2 md:divide-x md:divide-gray-100">
+          {/* 输入 */}
+          <div className="relative flex flex-col p-4">
+            <textarea
+              value={inputText}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="输入要翻译的文本..."
+              className="flex-1 resize-none border-none bg-transparent text-base leading-relaxed text-gray-800 placeholder-gray-300 focus:outline-none"
+              rows={8}
+            />
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-gray-400">
+                {inputText.length} 字符
+              </span>
+              <button
+                onClick={handleClear}
+                disabled={!inputText}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 disabled:opacity-0"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                清空
+              </button>
+            </div>
+          </div>
+
+          {/* 输出 */}
+          <div className="relative flex flex-col border-t border-gray-100 bg-gray-50/50 p-4 md:border-t-0">
+            {mutation.isPending && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              </div>
+            )}
+            <div className="flex-1 whitespace-pre-wrap text-base leading-relaxed text-gray-800">
+              {outputText || (
+                <span className="text-gray-300">翻译结果将在这里显示...</span>
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-gray-400">
+                {mutation.data?.engineUsed && (
+                  <>
+                    引擎: {mutation.data.engineUsed}
+                    {mutation.data.tokensUsed != null &&
+                      ` | Token: ${mutation.data.tokensUsed}`}
+                  </>
+                )}
+              </span>
+              <button
+                onClick={handleCopy}
+                disabled={!outputText}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-0"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-green-500" />
+                    <span className="text-green-500">已复制</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    复制
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 错误提示 */}
+        {error && (
+          <div className="border-t border-red-100 bg-red-50 px-6 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

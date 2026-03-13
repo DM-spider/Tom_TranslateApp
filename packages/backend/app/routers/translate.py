@@ -12,6 +12,7 @@
 """
 
 from fastapi import APIRouter, HTTPException
+from redis.exceptions import ConnectionError as RedisConnectionError
 from app.services.engines.base import TranslateRequest, TranslateResult
 from app.services.translator import TranslatorService
 
@@ -59,8 +60,12 @@ async def translate(req: TranslateRequest):
     """
     try:
         return await translator.translate(req)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RedisConnectionError:
+        raise HTTPException(status_code=503, detail="缓存服务暂时不可用，请稍后重试")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=502, detail=f"翻译引擎调用失败: {str(e)}")
 
 
 @router.get("/languages")

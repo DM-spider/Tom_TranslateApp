@@ -43,7 +43,11 @@ class TranslatorService:
             TranslateResult: 翻译结果，translated_texts 顺序与输入 texts 一一对应
         """
         # 根据请求中指定的引擎类型，取出对应的引擎实例
-        engine = self.engines[req.engine]
+        engine = self.engines.get(req.engine)
+        if engine is None:
+            raise ValueError(
+                f"翻译引擎 '{req.engine}' 暂未实现，当前可用引擎: {', '.join(str(k.value) for k in self.engines)}"
+            )
 
         # ---- 第 1 步：批量查缓存 ----
         # cached 是一个列表，命中的位置为译文，未命中的位置为 None
