@@ -7,6 +7,7 @@ interface LanguageSelectProps {
   onChange: (value: string) => void;
   languages: Record<string, string>;
   excludeAuto?: boolean;
+  disabled?: boolean;
   label: string;
 }
 
@@ -15,6 +16,7 @@ export function LanguageSelect({
   onChange,
   languages,
   excludeAuto = false,
+  disabled = false,
   label,
 }: LanguageSelectProps) {
   const entries = Object.entries(languages).filter(
@@ -30,6 +32,7 @@ export function LanguageSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
           className="w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2 pr-8 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           {entries.map(([code, name]) => (

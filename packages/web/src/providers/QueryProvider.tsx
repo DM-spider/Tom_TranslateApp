@@ -8,7 +8,17 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { staleTime: 60 * 1000, retry: 1 },
+          queries: {
+            staleTime: 60 * 1000,
+            retry: (failureCount, error) => {
+              const message = error instanceof Error ? error.message : "";
+              const isClientError = /\((400|401|403|404|422)\)/.test(message);
+              if (isClientError) {
+                return false;
+              }
+              return failureCount < 2;
+            },
+          },
         },
       })
   );
