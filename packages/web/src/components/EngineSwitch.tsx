@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles, Globe, Languages } from "lucide-react";
-import type { EngineType } from "@/lib/types";
+import type { EngineType } from "shared";
 
 interface EngineSwitchProps {
   value: EngineType;

@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowRightLeft, Copy, Trash2, Check, Loader2 } from "lucide-react";
 import { translate, getLanguages } from "@/lib/api";
-import type { EngineType } from "@/lib/types";
+import type { EngineType } from "shared";
 import { loadUserPreferences, saveUserPreferences } from "@/lib/storage";
 import { LanguageSelect } from "./LanguageSelect";
 import { EngineSwitch } from "./EngineSwitch";

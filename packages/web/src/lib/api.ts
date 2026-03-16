@@ -1,4 +1,4 @@
-import type { TranslateRequest, TranslateResult } from "./types";
+import type { TranslateRequest, TranslateResult } from "shared";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 15000;

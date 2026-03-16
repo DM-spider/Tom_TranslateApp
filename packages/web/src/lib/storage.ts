@@ -1,4 +1,4 @@
-import type { EngineType } from "./types";
+import type { EngineType } from "shared";
 
 const PREFERENCES_KEY = "tom-translate.preferences.v1";
 

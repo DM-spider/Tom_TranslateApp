@@ -13,8 +13,11 @@
 """
 
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from enum import Enum
+
+MAX_TEXTS_COUNT = 50
+MAX_TEXT_LENGTH = 5000
 
 
 class EngineType(str, Enum):
@@ -38,6 +41,20 @@ class TranslateRequest(BaseModel):
     source_lang: str = "auto"
     target_lang: str = "zh-CN"
     engine: EngineType = EngineType.DEEPSEEK
+
+    @field_validator("texts")
+    @classmethod
+    def validate_texts(cls, v: list[str]) -> list[str]:
+        if not v:
+            raise ValueError("texts 不能为空")
+        if len(v) > MAX_TEXTS_COUNT:
+            raise ValueError(f"单次最多翻译 {MAX_TEXTS_COUNT} 段文本")
+        for i, text in enumerate(v):
+            if len(text) > MAX_TEXT_LENGTH:
+                raise ValueError(
+                    f"第 {i + 1} 段文本超过 {MAX_TEXT_LENGTH} 字符限制"
+                )
+        return v
 
 
 class TranslateResult(BaseModel):
