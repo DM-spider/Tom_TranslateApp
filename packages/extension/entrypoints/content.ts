@@ -1,6 +1,7 @@
 import type { ExtensionMessage, ExtensionResponse } from "shared";
 import { PageTranslator } from "@/utils/page-translator";
-import { hasTranslations } from "@/utils/renderer";
+import { hasTranslations, setDisplayMode } from "@/utils/renderer";
+import type { ExtensionSettings } from "@/utils/settings";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -12,32 +13,70 @@ export default defineContentScript({
     let bubbleEl: HTMLDivElement | null = null;
     let selectedText = "";
     let autoTranslateEnabled = true;
+    let targetLang = "zh-CN";
 
     const pageTranslator = new PageTranslator();
 
-    // 启动时加载 autoTranslate 设置
     chrome.runtime
       .sendMessage({ type: "GET_SETTINGS", payload: null } as ExtensionMessage)
       .then((res) => {
         if (res?.type === "SETTINGS") {
-          autoTranslateEnabled = (res.payload as { autoTranslate: boolean }).autoTranslate;
+          const s = res.payload as ExtensionSettings;
+          autoTranslateEnabled = s.autoTranslate;
+          targetLang = s.defaultTargetLang;
+          setDisplayMode(s.displayMode ?? "bilingual");
         }
       })
       .catch(() => {});
 
-    // 监听设置变更
     chrome.storage.onChanged.addListener((changes) => {
       const settingsChange = changes["tom-translate-settings"];
       if (settingsChange?.newValue) {
-        autoTranslateEnabled = settingsChange.newValue.autoTranslate ?? true;
+        const s = settingsChange.newValue as Partial<ExtensionSettings>;
+        autoTranslateEnabled = s.autoTranslate ?? true;
+        if (s.defaultTargetLang) targetLang = s.defaultTargetLang;
+        if (s.displayMode) {
+          setDisplayMode(s.displayMode);
+        }
       }
     });
+
+    function normalizePageLang(lang: string): string {
+      const l = lang.toLowerCase().trim();
+      if (!l) return "";
+      if (l === "zh" || l.startsWith("zh-hans") || l === "zh-cn") return "zh-CN";
+      if (l.startsWith("zh-hant") || l === "zh-tw" || l === "zh-hk" || l === "zh-mo") return "zh-TW";
+      return l.split("-")[0];
+    }
+
+    function isPageSameLanguage(): boolean {
+      const pageLang = normalizePageLang(document.documentElement.lang || "");
+      if (!pageLang) return false;
+      const normalizedTarget = normalizePageLang(targetLang);
+      return pageLang === normalizedTarget;
+    }
 
     // ---- 监听来自 Popup / Background 的消息 ----
 
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (message.type === "TRANSLATE_PAGE") {
-        pageTranslator.translatePage().catch(console.error);
+        const payload = message.payload as
+          | { displayMode?: ExtensionSettings["displayMode"] }
+          | null;
+        if (payload?.displayMode) {
+          setDisplayMode(payload.displayMode);
+        }
+        if (pageTranslator.getState() === "translating") {
+          sendResponse({ type: "ok" });
+          return false;
+        }
+        if (hasTranslations()) {
+          pageTranslator.restore();
+        } else if (isPageSameLanguage()) {
+          pageTranslator.showSameLanguageHint(targetLang);
+        } else {
+          pageTranslator.translatePage().catch(console.error);
+        }
         sendResponse({ type: "ok" });
       } else if (message.type === "RESTORE_PAGE") {
         pageTranslator.restore();
@@ -235,7 +274,7 @@ export default defineContentScript({
       return e.composedPath().some((el) => el === host);
     }
 
-    ctx.addEventListener(document, "mouseup", (e: MouseEvent) => {
+    ctx.addEventListener(document, "mouseup", ((e: MouseEvent) => {
       if (isInsideOurUI(e)) return;
       if (!autoTranslateEnabled) return;
 
@@ -252,23 +291,40 @@ export default defineContentScript({
           dismissAll();
         }
       }, 10);
-    });
+    }) as EventListener);
 
-    ctx.addEventListener(document, "mousedown", (e: MouseEvent) => {
+    ctx.addEventListener(document, "mousedown", ((e: MouseEvent) => {
       if (isInsideOurUI(e)) return;
       if (bubbleEl && bubbleEl.style.display !== "none") {
         dismissAll();
       }
-    });
+    }) as EventListener);
 
-    ctx.addEventListener(document, "keydown", (e: KeyboardEvent) => {
+    ctx.addEventListener(document, "keydown", ((e: KeyboardEvent) => {
       if (e.key === "Escape") dismissAll();
-    });
+    }) as EventListener);
 
     ctx.addEventListener(document, "scroll", () => {
       if (triggerEl && triggerEl.style.display !== "none") {
         hideTrigger();
       }
+    });
+
+    // ---- SPA Navigation Detection ----
+
+    let lastUrl = location.href;
+    const spaNavTimer = setInterval(() => {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        if (hasTranslations()) {
+          pageTranslator.restore();
+        }
+        dismissAll();
+      }
+    }, 1000);
+
+    ctx.onInvalidated(() => {
+      clearInterval(spaNavTimer);
     });
 
     // ---- Helpers ----

@@ -6,7 +6,8 @@ export interface TranslateBatch {
   tokenEstimate: number;
 }
 
-const MAX_TOKENS_PER_BATCH = 1500;
+const MAX_TOKENS_PER_BATCH = 2000;
+const MAX_ITEMS_PER_BATCH = 30;
 const MAX_TEXT_LENGTH = 4500;
 
 function estimateTokens(text: string): number {
@@ -27,10 +28,10 @@ export function segmentIntoBatches(blocks: TextBlock[]): TranslateBatch[] {
   let current: TranslateBatch = { items: [], texts: [], tokenEstimate: 0 };
 
   for (const block of blocks) {
-    if (block.text.length > MAX_TEXT_LENGTH) {
-      block.text = block.text.slice(0, MAX_TEXT_LENGTH);
-    }
-    const tokens = estimateTokens(block.text);
+    const text = block.text.length > MAX_TEXT_LENGTH
+      ? block.text.slice(0, MAX_TEXT_LENGTH)
+      : block.text;
+    const tokens = estimateTokens(text);
 
     if (tokens > MAX_TOKENS_PER_BATCH) {
       if (current.items.length > 0) {
@@ -39,19 +40,23 @@ export function segmentIntoBatches(blocks: TextBlock[]): TranslateBatch[] {
       }
       batches.push({
         items: [block],
-        texts: [block.text],
+        texts: [text],
         tokenEstimate: tokens,
       });
       continue;
     }
 
-    if (current.tokenEstimate + tokens > MAX_TOKENS_PER_BATCH && current.items.length > 0) {
+    if (
+      (current.tokenEstimate + tokens > MAX_TOKENS_PER_BATCH ||
+        current.items.length >= MAX_ITEMS_PER_BATCH) &&
+      current.items.length > 0
+    ) {
       batches.push(current);
       current = { items: [], texts: [], tokenEstimate: 0 };
     }
 
     current.items.push(block);
-    current.texts.push(block.text);
+    current.texts.push(text);
     current.tokenEstimate += tokens;
   }
 

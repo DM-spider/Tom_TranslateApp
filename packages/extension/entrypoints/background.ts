@@ -47,6 +47,7 @@ export default defineBackground(() => {
           targetLang: settings.defaultTargetLang,
           engine: settings.defaultEngine,
           apiUrl: settings.apiUrl,
+          apiKey: settings.apiKey,
         });
         await chrome.tabs.sendMessage(tab.id, {
           type: "SHOW_TRANSLATION",
@@ -69,16 +70,23 @@ export default defineBackground(() => {
 
   // ---- 快捷键 ----
   chrome.commands.onCommand.addListener(async (command) => {
+    console.log("[TomTranslate] command received:", command);
     if (command === "translate-page") {
       const [tab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
+      console.log("[TomTranslate] active tab:", tab?.id, tab?.url);
       if (tab?.id) {
-        await chrome.tabs.sendMessage(tab.id, {
-          type: "TRANSLATE_PAGE",
-          payload: null,
-        });
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
+            type: "TRANSLATE_PAGE",
+            payload: null,
+          });
+          console.log("[TomTranslate] TRANSLATE_PAGE sent OK");
+        } catch (err) {
+          console.error("[TomTranslate] sendMessage failed:", err);
+        }
       }
     }
   });
@@ -101,6 +109,7 @@ async function handleMessage(
         targetLang: payload.targetLang || settings.defaultTargetLang,
         engine: payload.engine || settings.defaultEngine,
         apiUrl: settings.apiUrl,
+        apiKey: settings.apiKey,
       });
       return { type: "TRANSLATE_RESULT", payload: result };
     }
@@ -111,12 +120,63 @@ async function handleMessage(
         targetLang?: string;
         engine?: string;
       };
+      const targetLang = payload.targetLang || settings.defaultTargetLang;
+      const engine = payload.engine || settings.defaultEngine;
+
       const result = await translateBatch({
         texts: payload.texts,
-        targetLang: payload.targetLang || settings.defaultTargetLang,
-        engine: payload.engine || settings.defaultEngine,
+        targetLang,
+        engine,
         apiUrl: settings.apiUrl,
+        apiKey: settings.apiKey,
       });
+
+      if (result.translatedTexts.length !== payload.texts.length) {
+        console.warn(
+          "[TomTranslate] batch size mismatch, fallback to single for missing:",
+          {
+            input: payload.texts.length,
+            output: result.translatedTexts.length,
+          }
+        );
+        const merged = [...result.translatedTexts];
+        // 仅对缺失的索引发起单条翻译，已有结果的保留
+        const missingIndices: number[] = [];
+        for (let i = merged.length; i < payload.texts.length; i++) {
+          missingIndices.push(i);
+        }
+        if (missingIndices.length > 0) {
+          const fallbackResults = await Promise.all(
+            missingIndices.map(async (idx) => {
+              try {
+                const single = await translateText({
+                  text: payload.texts[idx],
+                  targetLang,
+                  engine,
+                  apiUrl: settings.apiUrl,
+                  apiKey: settings.apiKey,
+                });
+                return single.translatedTexts[0] || "";
+              } catch {
+                return "";
+              }
+            })
+          );
+          for (let j = 0; j < missingIndices.length; j++) {
+            merged[missingIndices[j]] = fallbackResults[j];
+          }
+        }
+        // 截断多余的结果
+        merged.length = payload.texts.length;
+
+        return {
+          type: "TRANSLATE_RESULT",
+          payload: {
+            ...result,
+            translatedTexts: merged,
+          },
+        };
+      }
       return { type: "TRANSLATE_RESULT", payload: result };
     }
 

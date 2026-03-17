@@ -36,13 +36,16 @@ class Settings(BaseSettings):
 
     # ---- 应用运行配置 ----
     cors_origins: str = "http://localhost:3000,chrome-extension://*"  # 允许跨域的前端地址
-    debug: bool = True
-    rate_limit_per_minute: int = 30  # 每分钟最大请求次数
+    debug: bool = False  # 生产默认关闭，开发时在 .env 中设 DEBUG=true
+    rate_limit_per_minute: int = 30  # 每分钟最大请求次数（per IP）
 
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     free_daily_page_translations: int = 10   # 每日免费整页翻译次数
     free_daily_text_translations: int = 100  # 每日免费文本翻译次数
+
+    # ---- 简易认证 ----
+    api_secret_key: str = ""  # 设置后所有翻译接口需携带 X-API-Key 头
 
     # pydantic-settings 的内部配置：指定 .env 文件路径
     # 路径是相对于 uvicorn 启动时的工作目录（packages/backend/），所以 ../../.env 指向项目根目录

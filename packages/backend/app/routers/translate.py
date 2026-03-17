@@ -26,7 +26,8 @@ translator = TranslatorService()
 # 前端调用 GET /api/v1/languages 获取这个列表来渲染下拉菜单
 SUPPORTED_LANGUAGES = {
     "auto": "自动检测",
-    "zh-CN": "中文",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
     "en": "English",
     "ja": "日本語",
     "ko": "한국어",
@@ -65,7 +66,17 @@ async def translate(req: TranslateRequest):
     except RedisConnectionError:
         raise HTTPException(status_code=503, detail="缓存服务暂时不可用，请稍后重试")
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"翻译引擎调用失败: {str(e)}")
+        import logging
+        logging.exception("翻译引擎调用失败")
+        safe_msg = "翻译引擎调用失败，请稍后重试"
+        err_type = type(e).__name__
+        if err_type in ("AuthenticationError", "PermissionDeniedError"):
+            safe_msg = "翻译引擎认证失败，请检查 API Key 配置"
+        elif err_type in ("RateLimitError",):
+            safe_msg = "翻译引擎请求过于频繁，请稍后重试"
+        elif err_type in ("Timeout", "TimeoutError", "ConnectTimeout", "ReadTimeout"):
+            safe_msg = "翻译引擎响应超时，请稍后重试"
+        raise HTTPException(status_code=502, detail=safe_msg)
 
 
 @router.get("/languages")

@@ -5,6 +5,7 @@ export interface ProgressInfo {
   completed: number;
   total: number;
   errorCount?: number;
+  message?: string;
 }
 
 export class ProgressUI {
@@ -35,6 +36,12 @@ export class ProgressUI {
     this.shadow.appendChild(this.container);
 
     document.documentElement.appendChild(this.host);
+  }
+
+  private escapeHtml(text: string): string {
+    const el = document.createElement("span");
+    el.textContent = text;
+    return el.innerHTML;
   }
 
   update(info: ProgressInfo) {
@@ -77,10 +84,11 @@ export class ProgressUI {
         .querySelector(".tt-btn-close")
         ?.addEventListener("click", () => this.destroy());
     } else if (info.state === "error") {
+      const safeMessage = this.escapeHtml(info.message || "翻译出错");
       this.container.innerHTML = `
         <div class="tt-progress-header">
           <span class="tt-progress-icon tt-err">!</span>
-          <span class="tt-progress-text">翻译出错</span>
+          <span class="tt-progress-text">${safeMessage}</span>
         </div>
         <div class="tt-progress-actions">
           <button class="tt-btn-close">关闭</button>

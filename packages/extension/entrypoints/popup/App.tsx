@@ -1,14 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import type { EngineType, LangCode, ExtensionMessage } from "shared";
-import type { ExtensionSettings } from "@/utils/settings";
+import type { ExtensionSettings, DisplayMode } from "@/utils/settings";
 
 const ENGINES: { id: EngineType; label: string }[] = [
   { id: "deepseek", label: "DeepSeek" },
   { id: "gemini", label: "Gemini" },
 ];
 
+const DISPLAY_MODES: { id: DisplayMode; label: string }[] = [
+  { id: "bilingual", label: "对照翻译" },
+  { id: "target-only", label: "仅译文" },
+];
+
 const LANGUAGES: { code: Exclude<LangCode, "auto">; name: string }[] = [
-  { code: "zh-CN", name: "中文" },
+  { code: "zh-CN", name: "简体中文" },
+  { code: "zh-TW", name: "繁體中文" },
   { code: "en", name: "English" },
   { code: "ja", name: "日本語" },
   { code: "ko", name: "한국어" },
@@ -22,6 +28,7 @@ type PageState = "idle" | "translating" | "done";
 
 export default function App() {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pageState, setPageState] = useState<PageState>("idle");
   const [hasTranslations, setHasTranslations] = useState(false);
@@ -57,19 +64,35 @@ export default function App() {
     queryPageState();
   }, [queryPageState]);
 
-  async function handleSave() {
-    if (!settings) return;
+  function updateSettings(next: ExtensionSettings) {
+    setSettings(next);
+    setDirty(true);
+  }
+
+  useEffect(() => {
+    if (!settings || !dirty) return;
+    const timer = setTimeout(async () => {
+      const msg: ExtensionMessage = { type: "SAVE_SETTINGS", payload: settings };
+      await chrome.runtime.sendMessage(msg);
+      setDirty(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [settings, dirty]);
+
+  async function saveSettingsImmediately() {
+    if (!settings || !dirty) return;
     const msg: ExtensionMessage = { type: "SAVE_SETTINGS", payload: settings };
-    const res = await chrome.runtime.sendMessage(msg);
-    if (res?.type === "SETTINGS") {
-      setSettings(res.payload as ExtensionSettings);
-    }
+    await chrome.runtime.sendMessage(msg);
+    setDirty(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
 
   async function handleTranslatePage() {
     try {
+      await saveSettingsImmediately();
       const [activeTab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
@@ -77,7 +100,9 @@ export default function App() {
       if (!activeTab?.id) return;
       await chrome.tabs.sendMessage(activeTab.id, {
         type: "TRANSLATE_PAGE",
-        payload: null,
+        payload: settings
+          ? { displayMode: settings.displayMode }
+          : null,
       });
       setPageState("translating");
       window.close();
@@ -153,6 +178,31 @@ export default function App() {
 
       {tab === "actions" ? (
         <div className="flex flex-col gap-3 p-4">
+          {/* Display Mode Switch */}
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 text-xs text-gray-400">模式</span>
+            <div className="flex flex-1 gap-1.5">
+              {DISPLAY_MODES.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() =>
+                    updateSettings({ ...settings, displayMode: id })
+                  }
+                  className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                    settings.displayMode === id
+                      ? "bg-blue-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-right text-[11px] text-gray-400">
+            引擎请在「设置」页调整
+          </p>
+
           {/* Translate Page Button */}
           <button
             onClick={handleTranslatePage}
@@ -178,7 +228,7 @@ export default function App() {
 
           {/* Shortcut Hint */}
           <p className="text-center text-xs text-gray-400">
-            快捷键 <kbd className="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 text-[11px] font-mono">Alt+A</kbd> 翻译当前页面
+            快捷键 <kbd className="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 text-[11px] font-mono">Alt+1</kbd> 翻译 / 还原页面
           </p>
         </div>
       ) : (
@@ -193,7 +243,7 @@ export default function App() {
                 <button
                   key={id}
                   onClick={() =>
-                    setSettings({ ...settings, defaultEngine: id })
+                    updateSettings({ ...settings, defaultEngine: id })
                   }
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     settings.defaultEngine === id
@@ -215,7 +265,7 @@ export default function App() {
             <select
               value={settings.defaultTargetLang}
               onChange={(e) =>
-                setSettings({
+                updateSettings({
                   ...settings,
                   defaultTargetLang: e.target.value as Exclude<LangCode, "auto">,
                 })
@@ -239,13 +289,32 @@ export default function App() {
               type="url"
               value={settings.apiUrl}
               onChange={(e) =>
-                setSettings({ ...settings, apiUrl: e.target.value })
+                updateSettings({ ...settings, apiUrl: e.target.value })
               }
               placeholder="http://localhost:8000"
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
             <p className="mt-1 text-[11px] text-gray-400">
               部署后请改为生产环境地址
+            </p>
+          </div>
+
+          {/* API Key */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+              API Key（可选）
+            </label>
+            <input
+              type="password"
+              value={settings.apiKey}
+              onChange={(e) =>
+                updateSettings({ ...settings, apiKey: e.target.value })
+              }
+              placeholder="留空表示无需认证"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+            <p className="mt-1 text-[11px] text-gray-400">
+              后端设置了 API_SECRET_KEY 时需填写
             </p>
           </div>
 
@@ -256,23 +325,20 @@ export default function App() {
               type="checkbox"
               checked={settings.autoTranslate}
               onChange={(e) =>
-                setSettings({ ...settings, autoTranslate: e.target.checked })
+                updateSettings({ ...settings, autoTranslate: e.target.checked })
               }
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
           </label>
 
-          {/* Save */}
-          <button
-            onClick={handleSave}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium text-white transition-colors ${
-              saved
-                ? "bg-green-500"
-                : "bg-blue-500 hover:bg-blue-600 active:bg-blue-700"
+          {/* Auto-save indicator */}
+          <div
+            className={`text-center text-xs transition-opacity duration-300 ${
+              saved ? "text-green-500 opacity-100" : "text-gray-400 opacity-60"
             }`}
           >
-            {saved ? "已保存 ✓" : "保存设置"}
-          </button>
+            {saved ? "已保存 ✓" : "修改后自动保存"}
+          </div>
         </div>
       )}
     </div>

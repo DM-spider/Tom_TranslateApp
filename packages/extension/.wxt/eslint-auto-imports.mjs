@@ -1,5 +1,6 @@
 const globals = {
   "ContentScriptContext": true,
+  "DisplayMode": true,
   "ExtensionSettings": true,
   "InvalidMatchPattern": true,
   "MatchPattern": true,
@@ -34,6 +35,7 @@ const globals = {
   "renderTranslation": true,
   "saveSettings": true,
   "segmentIntoBatches": true,
+  "setDisplayMode": true,
   "storage": true,
   "translateBatch": true,
   "translateText": true,

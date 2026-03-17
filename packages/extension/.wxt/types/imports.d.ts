@@ -27,6 +27,7 @@ declare global {
   const renderTranslation: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/renderer')['renderTranslation']
   const saveSettings: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/settings')['saveSettings']
   const segmentIntoBatches: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/segmenter')['segmentIntoBatches']
+  const setDisplayMode: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/renderer')['setDisplayMode']
   const storage: typeof import('wxt/storage')['storage']
   const translateBatch: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/api')['translateBatch']
   const translateText: typeof import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/api')['translateText']
@@ -57,6 +58,6 @@ declare global {
   export type { TranslateBatch } from 'D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/segmenter'
   import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/segmenter')
   // @ts-ignore
-  export type { ExtensionSettings } from 'D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/settings'
+  export type { DisplayMode, ExtensionSettings } from 'D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/settings'
   import('D:/WorkingSet/PythonProjects/深水工作/Tom_TranslateApp/packages/extension/utils/settings')
 }

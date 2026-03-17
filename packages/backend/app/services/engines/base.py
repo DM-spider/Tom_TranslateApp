@@ -47,6 +47,10 @@ class TranslateRequest(BaseModel):
     def validate_texts(cls, v: list[str]) -> list[str]:
         if not v:
             raise ValueError("texts 不能为空")
+        # 过滤空白字符串，避免浪费 API 额度
+        v = [t for t in v if t.strip()]
+        if not v:
+            raise ValueError("texts 中没有有效文本（全部为空）")
         if len(v) > MAX_TEXTS_COUNT:
             raise ValueError(f"单次最多翻译 {MAX_TEXTS_COUNT} 段文本")
         for i, text in enumerate(v):

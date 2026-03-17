@@ -7,6 +7,7 @@ export type EngineType = "deepseek" | "gemini" | "baidu";
 export type LangCode =
   | "auto"
   | "zh-CN"
+  | "zh-TW"
   | "en"
   | "ja"
   | "ko"
