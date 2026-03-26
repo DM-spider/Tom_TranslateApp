@@ -61,11 +61,18 @@ body{
 .bg-red{background:#ffebee;border-color:#ef9a9a;}
 .bg-gry{background:#eceff1;border-color:#b0bec5;}
 .bg-dor{background:#fbe9e7;border-color:#ffab91;}
+.bg-teal{background:#e0f2f1;border-color:#80cbc4;}
 
-/* ===== 用户图标区 ===== */
-.usr-icon{font-size:36px;text-align:center;}
-.usr-name{font-size:15px;font-weight:800;text-align:center;margin-top:2px;}
-.usr-sub{font-size:10.5px;color:#666;text-align:center;}
+/* ===== 用户卡片 ===== */
+.usr-card{
+  border-radius:12px;padding:22px 50px;text-align:center;
+  border:1.5px solid;min-width:200px;
+  transition:box-shadow .2s;
+}
+.usr-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
+.usr-card .icon{font-size:38px;margin-bottom:6px;}
+.usr-card .name{font-size:16px;font-weight:800;margin-bottom:2px;}
+.usr-card .sub{font-size:11px;color:#666;}
 
 /* ===== 虚线双向连线 ===== */
 .hconn{display:flex;align-items:center;width:100%;}
@@ -116,10 +123,17 @@ body{
 .b-blue{background:#2196f3;color:#fff;}
 .b-org{background:#ff7043;color:#fff;}
 .b-gray{background:#bdbdbd;color:#fff;}
+.b-teal{background:#009688;color:#fff;}
 
 /* ===== 中线标注 ===== */
 .clbl{font-size:10.5px;color:#888;text-align:center;padding:1px 0;}
 .carrow{text-align:center;font-size:15px;color:#999;line-height:1;}
+
+/* ===== 工程化层小卡片 ===== */
+.cfg-card{border:1.5px solid #b0bec5;border-radius:6px;padding:9px 12px;background:#fff;flex:1;}
+.cfg-card .cfg-t{font-size:12px;font-weight:700;margin-bottom:4px;color:#37474f;display:flex;align-items:center;gap:4px;}
+.cfg-card .cfg-body{font-size:10.5px;line-height:1.65;color:#546e7a;}
+.cfg-card .cfg-body code{font-family:"Fira Code","Cascadia Code",Consolas,monospace;font-size:10px;background:#f5f5f5;padding:0 3px;border-radius:2px;}
 </style>
 </head>
 <body>
@@ -129,26 +143,32 @@ body{
 <!-- ================================================================ -->
 <div class="row">
   <div class="layer-tag">用户层</div>
-  <div class="layer-body" style="display:flex;justify-content:space-between;align-items:center;padding:10px 60px;">
-    <div>
-      <div class="usr-icon">🌐</div>
-      <div class="usr-name">网页用户</div>
-      <div class="usr-sub">Next.js 站点</div>
+  <div class="layer-body" style="display:flex;gap:16px;">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:12px;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:10px;padding:18px 28px;">
+      <div style="font-size:36px;line-height:1;">🌐</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;">网页用户</div>
+        <div style="font-size:11px;color:#555;margin-top:2px;">通过 Next.js 站点访问</div>
+      </div>
     </div>
-    <div style="flex:1;"></div>
-    <div>
-      <div class="usr-icon">🧩</div>
-      <div class="usr-name">扩展用户</div>
-      <div class="usr-sub">浏览器扩展在任何页面</div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:12px;background:#fff3e0;border:1.5px solid #ffb74d;border-radius:10px;padding:18px 28px;">
+      <div style="font-size:36px;line-height:1;">🧩</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;">扩展用户</div>
+        <div style="font-size:11px;color:#555;margin-top:2px;">浏览器扩展嵌入任意页面</div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- 连线 -->
-<div class="arrow-row">
-  <div class="arr"><div class="shaft"></div><div class="tip"></div><div class="lbl">browser rendering</div></div>
-  <div class="spacer"></div>
-  <div class="arr"><div class="shaft"></div><div class="tip"></div><div class="lbl">injected into webpage</div></div>
+<div class="arrow-row" style="padding-left:52px;">
+  <div style="flex:1;display:flex;justify-content:center;">
+    <div class="arr"><div class="shaft"></div><div class="tip"></div><div class="lbl">browser rendering</div></div>
+  </div>
+  <div style="flex:1;display:flex;justify-content:center;">
+    <div class="arr"><div class="shaft"></div><div class="tip"></div><div class="lbl">injected into webpage</div></div>
+  </div>
 </div>
 
 <!-- ================================================================ -->
@@ -161,30 +181,52 @@ body{
     <!-- Web 前端 -->
     <div class="bx bg-grn" style="flex:1;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
-        <div class="bx-title">Web Front-end <span class="bx-sub">Next.js · TypeScript · Tailwind CSS</span></div>
+        <div class="bx-title">Web Front-end <span class="bx-sub">Next.js 15 · React 19 · Tailwind CSS 4</span></div>
         <div class="path-r">packages/web/</div>
       </div>
-      <div class="c"><span class="n">page.tsx</span><span class="d">页面入口</span></div>
-      <div class="c"><span class="n">TranslatePanel.tsx</span><span class="d">翻译主面板</span></div>
-      <div class="c"><span class="n">LanguageSelect.tsx</span><span class="d">语言选择器</span></div>
-      <div class="c"><span class="n">EngineSwitch.tsx</span><span class="d">引擎切换器</span></div>
-      <div class="c"><span class="n">lib/api.ts</span><span class="d">封装 HTTP 请求，调用后端</span></div>
-      <div class="c"><span class="n">lib/storage.ts</span><span class="d">本地偏好存储</span></div>
+      <div style="font-size:10px;color:#999;margin-bottom:4px;font-weight:600;">src/app/</div>
+      <div class="c"><span class="n">layout.tsx</span><span class="d">根布局：挂载 QueryProvider、全局 CSS、HTML 元信息</span></div>
+      <div class="c"><span class="n">page.tsx</span><span class="d">页面入口：渲染 TranslatePanel 主界面</span></div>
+      <div class="c"><span class="n">error.tsx</span><span class="d">全局错误边界组件</span></div>
+      <div class="c"><span class="n">globals.css</span><span class="d">Tailwind 指令 + 全局样式</span></div>
+      <div style="font-size:10px;color:#999;margin:5px 0 3px;font-weight:600;">src/components/</div>
+      <div class="c"><span class="n">TranslatePanel.tsx</span><span class="d">翻译主面板：React Query Mutation、防抖输入、本地偏好</span></div>
+      <div class="c"><span class="n">LanguageSelect.tsx</span><span class="d">语言选择器下拉组件</span></div>
+      <div class="c"><span class="n">EngineSwitch.tsx</span><span class="d">引擎切换器组件</span></div>
+      <div style="font-size:10px;color:#999;margin:5px 0 3px;font-weight:600;">src/lib/ &amp; src/providers/</div>
+      <div class="c"><span class="n">lib/api.ts</span><span class="d">封装 HTTP 请求，snake_case ↔ camelCase 转换</span></div>
+      <div class="c"><span class="n">lib/storage.ts</span><span class="d">localStorage 用户偏好存储</span></div>
+      <div class="c"><span class="n">providers/QueryProvider.tsx</span><span class="d">TanStack React Query 客户端（staleTime=60s，智能重试）</span></div>
+      <div style="font-size:10px;color:#999;margin:5px 0 3px;font-weight:600;">配置文件</div>
+      <div class="c"><span class="n">next-env.d.ts</span><span class="d">Next.js 类型声明</span></div>
+      <div class="c"><span class="n">tsconfig.json</span><span class="d">TypeScript 配置</span></div>
+      <div class="c"><span class="n">next.config.ts</span><span class="d">Next.js 配置</span></div>
+      <div class="c"><span class="n">postcss.config.mjs</span><span class="d">Tailwind CSS 配置</span></div>
+      <div class="c"><span class="n">.env.local</span><span class="d">NEXT_PUBLIC_API_URL（默认 http://localhost:8000）</span></div>
+      <div class="c"><span class="n">package.json</span><span class="d">依赖：next, react, @tanstack/react-query, lucide-react</span></div>
     </div>
 
     <!-- Shared 类型库 -->
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:250px;">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:270px;">
       <div class="hconn" style="margin-bottom:5px;"><div class="hl"></div><div class="hlbl">共用类型定义</div><div class="hl"></div></div>
       <div class="dash bg-ylw" style="width:100%;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="bx-title" style="font-size:13px;">Shared 类型库</div>
           <div class="path-r">shared/src/index.ts</div>
         </div>
-        <div style="font-size:11.5px;line-height:1.75;">
+        <div style="font-size:11px;line-height:1.8;">
+          <div style="font-size:9.5px;color:#e65100;font-weight:600;margin-bottom:2px;">翻译引擎 & 语言</div>
           <div><strong>EngineType</strong>&ensp;"deepseek" | "gemini" | "baidu"</div>
-          <div><strong>LangCode</strong>&ensp;auto / zh-CN / zh-TW / en / ja / ko etc.</div>
+          <div><strong>LangCode</strong>&ensp;auto / zh-CN / zh-TW / en / ja / ko / fr / de / es / ru</div>
+          <div style="font-size:9.5px;color:#e65100;font-weight:600;margin:4px 0 2px;">请求 & 响应</div>
           <div><strong>TranslateRequest</strong>&ensp;texts / sourceLang / targetLang / engine</div>
-          <div><strong>TranslateResult</strong>&ensp;translatedTexts / engineLang / engineUsed / tokensUsed</div>
+          <div><strong>TranslateResult</strong>&ensp;translatedTexts / sourceLang / engineUsed / tokensUsed</div>
+          <div style="font-size:9.5px;color:#e65100;font-weight:600;margin:4px 0 2px;">扩展通信协议</div>
+          <div><strong>ExtensionMessage</strong>&ensp;TRANSLATE_SELECTION | PAGE | BATCH | GET/SAVE_SETTINGS</div>
+          <div><strong>ExtensionResponse</strong>&ensp;TRANSLATE_RESULT | SETTINGS | ERROR</div>
+          <div style="font-size:9.5px;color:#e65100;font-weight:600;margin:4px 0 2px;">用户设置</div>
+          <div><strong>UserSettings</strong>&ensp;defaultEngine / defaultTargetLang / autoTranslate</div>
+          <div><strong>DEFAULT_USER_SETTINGS</strong>&ensp;deepseek · zh-CN · autoTranslate: true</div>
         </div>
       </div>
       <div class="hconn" style="margin-top:5px;"><div class="hl"></div><div class="hlbl">共用类型定义</div><div class="hl"></div></div>
@@ -196,16 +238,25 @@ body{
         <div class="bx-title">浏览器扩展 <span class="bx-sub">WXT · React · TypeScript (Chrome MV3)</span></div>
         <div class="path-r">packages/extension/</div>
       </div>
-      <div class="c"><span class="n">popup/App.tsx</span><span class="d">扩展弹窗界面：语言选择 + 引擎选择 + 翻译触发位置</span></div>
-      <div class="c"><span class="n">background.ts</span><span class="d">后台 Service Worker：消息中转 + API 调用</span></div>
-      <div class="c"><span class="n">content.ts</span><span class="d">内容脚本：注入目标页面，接收翻译指令</span></div>
-      <div class="c"><span class="n">utils/page-translator.ts</span><span class="d">整页翻译流程控制</span></div>
-      <div class="c"><span class="n">utils/segmenter.ts</span><span class="d">文本分段：按段落/句子切分</span></div>
-      <div class="c"><span class="n">utils/dom-parser.ts</span><span class="d">DOM 解析：提取可见文字文本节点</span></div>
-      <div class="c"><span class="n">utils/renderer.ts</span><span class="d">译文渲染：写回翻译结果到 DOM</span></div>
-      <div class="c"><span class="n">utils/progress-ui.ts</span><span class="d">翻译进度条 UI 组件</span></div>
-      <div class="c"><span class="n">utils/api.ts</span><span class="d">封装调用后端接口</span></div>
-      <div class="c"><span class="n">utils/settings.ts</span><span class="d">读写扩展设置：引擎偏好 / 目标语言</span></div>
+      <div style="font-size:10px;color:#999;margin-bottom:4px;font-weight:600;">entrypoints/</div>
+      <div class="c"><span class="n">popup/App.tsx</span><span class="d">扩展弹窗界面：语言选择 + 引擎选择 + 翻译触发</span></div>
+      <div class="c"><span class="n">popup/main.tsx</span><span class="d">Popup React 入口：挂载 App 到 #root</span></div>
+      <div class="c"><span class="n">popup/index.html</span><span class="d">Popup 页面入口</span></div>
+      <div class="c"><span class="n">popup/style.css</span><span class="d">Popup 样式</span></div>
+      <div class="c"><span class="n">background.ts</span><span class="d">后台 Service Worker：右键菜单、快捷键 Alt+1、消息中转</span></div>
+      <div class="c"><span class="n">content.ts</span><span class="d">内容脚本：Shadow DOM UI、划词翻译、整页翻译入口</span></div>
+      <div style="font-size:10px;color:#999;margin:5px 0 3px;font-weight:600;">utils/</div>
+      <div class="c"><span class="n">page-translator.ts</span><span class="d">整页翻译：DOM 抽取 → 分批 → 并发翻译 → MutationObserver</span></div>
+      <div class="c"><span class="n">segmenter.ts</span><span class="d">文本分段：按段落 / 句子切分</span></div>
+      <div class="c"><span class="n">dom-parser.ts</span><span class="d">DOM 解析：提取可见文字文本节点</span></div>
+      <div class="c"><span class="n">renderer.ts</span><span class="d">译文渲染：写回翻译结果到 DOM</span></div>
+      <div class="c"><span class="n">progress-ui.ts</span><span class="d">翻译进度条 UI 组件</span></div>
+      <div class="c"><span class="n">api.ts</span><span class="d">封装调用后端接口，支持可选 X-API-Key 头</span></div>
+      <div class="c"><span class="n">settings.ts</span><span class="d">chrome.storage 扩展设置：apiUrl / apiKey / displayMode</span></div>
+      <div style="font-size:10px;color:#999;margin:5px 0 3px;font-weight:600;">配置文件</div>
+      <div class="c"><span class="n">.wxt/</span><span class="d">WXT 配置文件：wxt.config.ts, package.json, tailwind.config.ts</span></div>
+      <div class="c"><span class="n">wxt.config.ts</span><span class="d">WXT 构建配置：MV3 manifest、权限、快捷键、Tailwind Vite 插件</span></div>
+      <div class="c"><span class="n">package.json</span><span class="d">依赖：wxt, @wxt-dev/module-react, react, shared(workspace:*)</span></div>
     </div>
   </div>
 </div>
@@ -214,7 +265,7 @@ body{
 <div class="arrow-row" style="justify-content:center;">
   <div class="spacer"></div>
   <div style="text-align:center;">
-    <div class="clbl">HTTP request with engine / language parameters</div>
+    <div class="clbl">HTTP JSON request（engine / sourceLang / targetLang / texts[]）</div>
     <div class="carrow">▼ ────────────────────────────────────────────────── ▼</div>
   </div>
   <div class="spacer"></div>
@@ -235,65 +286,87 @@ body{
       <!-- 配置 + 中间件 -->
       <div style="display:flex;gap:10px;margin-bottom:8px;">
         <div class="bx" style="flex:1;background:rgba(255,255,255,.5);border-color:#ce93d8;">
-          <div class="bx-title" style="font-size:12px;">① 配置层 <span class="bx-sub">(config.py)</span></div>
+          <div class="bx-title" style="font-size:12px;">① 配置层 <span class="bx-sub">(app/config.py)</span></div>
           <div style="font-size:11px;line-height:1.65;color:#444;">
-            • pydantic-settings 从 .env 读取全局配置<br>
-            • 包含 API Keys / Redis URL / CORS Origins / Rate Limits / Debug Mode<br>
-            • @lru_cache 全局单例
+            • pydantic-settings 从 <code style="font-size:10px;background:#f3e5f5;padding:0 3px;border-radius:2px;">../../.env</code> 读取全局配置<br>
+            • API Keys：DEEPSEEK_* / GEMINI_* / BAIDU_*（预留）<br>
+            • 基础设施：REDIS_URL / CORS_ORIGINS / DEBUG<br>
+            • 安全 & 限流：API_SECRET_KEY / RATE_LIMIT_PER_MINUTE / FREE_DAILY_*<br>
+            • @lru_cache 全局单例 get_settings()
           </div>
         </div>
         <div class="bx" style="flex:1;background:rgba(255,255,255,.5);border-color:#ce93d8;">
-          <div class="bx-title" style="font-size:12px;">② 中间件层 <span class="bx-sub">(middleware.py)</span></div>
+          <div class="bx-title" style="font-size:12px;">② 中间件层 <span class="bx-sub">(app/main.py 内注册)</span></div>
           <div style="font-size:11px;line-height:1.65;color:#444;">
-            • CORS 跨域中间件（允许 Vercel 域 + chrome-extension://* origins）<br>
-            • Rate limiting 中间件（滑动窗口算法，per IP，默认 <strong>30 requests/min</strong>，返回 429）
+            • <strong>CORS</strong> 跨域中间件：允许 Vercel 域 + chrome-extension://* origins<br>
+            • <strong>Rate Limiting</strong> 中间件：滑动窗口算法，per IP，默认 <strong>30 req/min</strong>，返回 429<br>
+            • <strong>可选 API Key 认证</strong>：设置 API_SECRET_KEY 后，翻译接口需携带 X-API-Key 头
           </div>
         </div>
       </div>
 
-      <!-- 路由 + 服务调度 -->
+      <!-- 路由 + 服务调度 + 缓存 -->
       <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div class="bx" style="flex:1;background:rgba(255,255,255,.5);border-color:#ce93d8;">
-          <div class="bx-title" style="font-size:12px;">③ 路由层 <span class="bx-sub">(routers/translate.py, prefix /api/v1)</span></div>
+        <div class="bx" style="flex:0.8;background:rgba(255,255,255,.5);border-color:#ce93d8;">
+          <div class="bx-title" style="font-size:12px;">③ 路由层 <span class="bx-sub">(app/routers/translate.py)</span></div>
           <div style="font-size:11px;line-height:1.65;color:#444;">
-            • <strong style="color:#43a047;">POST</strong> /api/v1/translate — 核心翻译接口，接收 JSON，返回译文数组<br>
-            • <strong style="color:#1e88e5;">GET</strong>&ensp;/api/v1/languages — 返回支持的语言列表<br>
-            • <strong style="color:#1e88e5;">GET</strong>&ensp;/health — 健康检查
+            • prefix: <code style="font-size:10px;background:#f3e5f5;padding:0 3px;border-radius:2px;">/api/v1</code><br>
+            • <strong style="color:#43a047;">POST</strong> /api/v1/translate — 核心翻译接口<br>
+            • <strong style="color:#1e88e5;">GET</strong>&ensp;/api/v1/languages — 支持的语言列表<br>
+            • <strong style="color:#1e88e5;">GET</strong>&ensp;/health — 健康检查<br>
+            • 错误映射：400 / 502 / 503
           </div>
         </div>
-        <div class="bx" style="flex:1.3;background:rgba(255,255,255,.5);border-color:#ce93d8;">
-          <div class="bx-title" style="font-size:12px;">④ 服务调度层 <span class="bx-sub">(services/translator.py — TranslatorService)</span></div>
+        <div class="bx" style="flex:1.2;background:rgba(255,255,255,.5);border-color:#ce93d8;">
+          <div class="bx-title" style="font-size:12px;">④ 服务调度层 <span class="bx-sub">(app/services/translator.py — TranslatorService)</span></div>
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
             <span style="font-size:10px;color:#888;margin-right:3px;">Processes →</span>
             <span class="st"><span class="sn">1</span> 接收请求(多段文本)</span><span class="sa">→</span>
-            <span class="st"><span class="sn">2</span> Batch check Redis cache (get_batch)</span><span class="sa">→</span>
+            <span class="st"><span class="sn">2</span> Redis mget 批量查缓存</span><span class="sa">→</span>
             <span class="st"><span class="sn">3</span> 找出未命中文本</span>
           </div>
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;margin-top:3px;">
             <span style="font-size:10px;color:#888;margin-right:3px;">requests →</span>
             <span class="st"><span class="sn">4</span> 调翻译引擎处理</span><span class="sa">→</span>
-            <span class="st"><span class="sn">5</span> 新结果写 Redis (set, TTL <strong>7 days</strong>)</span><span class="sa">→</span>
-            <span class="st"><span class="sn">6</span> Merge cached + 新翻译结果, 合并返回</span>
+            <span class="st"><span class="sn">5</span> 新结果写 Redis (setex, TTL <strong>7d</strong>)</span><span class="sa">→</span>
+            <span class="st"><span class="sn">6</span> Merge cached + 新结果返回</span>
+          </div>
+          <div style="font-size:10px;color:#999;margin-top:5px;line-height:1.5;">
+            引擎注册表：engines dict[EngineType → BaseEngine]，新增引擎加一行即可
+          </div>
+        </div>
+        <div class="bx" style="flex:0.7;background:rgba(255,255,255,.5);border-color:#ce93d8;">
+          <div class="bx-title" style="font-size:12px;">⑤ 缓存层 <span class="bx-sub">(app/services/cache.py)</span></div>
+          <div style="font-size:11px;line-height:1.65;color:#444;">
+            • <strong>TranslateCache</strong> 类<br>
+            • 键格式：<code style="font-size:10px;background:#f3e5f5;padding:0 3px;border-radius:2px;">trans:&lt;SHA-256&gt;</code><br>
+            • TTL: <strong>7 天</strong>（86400×7）<br>
+            • get / set / get_batch（mget）<br>
+            • 容错：Redis 故障时静默降级
           </div>
         </div>
       </div>
 
       <!-- 引擎层 -->
       <div class="bx" style="background:rgba(255,255,255,.5);border-color:#ce93d8;">
-        <div class="bx-title" style="font-size:12px;">⑤ 引擎层 <span class="bx-sub">(services/engines/)</span></div>
-        <div style="font-size:11px;color:#444;margin-bottom:6px;">BaseEngine: base.py — 抽象基类，定义 translate() 接口规范</div>
+        <div class="bx-title" style="font-size:12px;">⑥ 引擎层 <span class="bx-sub">(app/services/engines/)</span></div>
+        <div style="font-size:11px;color:#444;margin-bottom:6px;">
+          <strong>BaseEngine</strong>（base.py）：抽象基类，定义 translate() 接口规范 ·
+          <strong>TranslateRequest</strong> / <strong>TranslateResult</strong> 数据模型 ·
+          <strong>EngineType</strong> 枚举 · 文本条数 / 长度校验
+        </div>
         <div style="display:flex;gap:8px;">
           <div class="eng" style="background:#ede7f6;border-color:#b39ddb;">
             <div class="eng-t" style="color:#5e35b1;">DeepSeekEngine</div>
-            <div class="eng-d">deepseek.py：通过 OpenAI SDK 调用，兼容协议</div>
+            <div class="eng-d">deepseek.py：AsyncOpenAI SDK，[SEP] 批量合并翻译策略</div>
           </div>
           <div class="eng" style="background:#e3f2fd;border-color:#90caf9;">
             <div class="eng-t" style="color:#1565c0;">GeminiEngine</div>
-            <div class="eng-d">gemini.py：通过 google-genai SDK 调用</div>
+            <div class="eng-d">gemini.py：google-genai SDK 异步 generate_content，[SEP] 策略</div>
           </div>
           <div class="eng off" style="background:#f5f5f5;">
             <div class="eng-t" style="color:#9e9e9e;">BaiduEngine <span class="badge b-gray">待接入</span></div>
-            <div class="eng-d">baidu.py：httpx 异步调用，暂未启用</div>
+            <div class="eng-d">baidu.py：httpx 异步调用百度翻译 REST API，暂未启用</div>
           </div>
         </div>
       </div>
@@ -317,17 +390,17 @@ body{
     <div class="bx bg-red" style="flex:1;text-align:center;">
       <div style="font-size:22px;">🔴</div>
       <div class="bx-title" style="justify-content:center;font-size:13px;">Redis Cache</div>
-      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">SHA-256 Hash Key, <strong>7 days TTL</strong><br>Fails silently on degradation without blocking translation</div>
+      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">redis.asyncio 异步客户端<br>SHA-256 Hash Key, <strong>7 days TTL</strong><br>故障时静默降级，不阻断翻译</div>
     </div>
     <div class="bx" style="flex:1;text-align:center;background:#ede7f6;border-color:#b39ddb;">
       <div style="font-size:22px;">🟣</div>
       <div class="bx-title" style="justify-content:center;font-size:13px;">DeepSeek API</div>
-      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">https://api.deepseek.com<br>OpenAI compatible protocol</div>
+      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">https://api.deepseek.com<br>OpenAI 兼容协议 · deepseek-chat</div>
     </div>
     <div class="bx" style="flex:1;text-align:center;background:#e3f2fd;border-color:#90caf9;">
       <div style="font-size:22px;">🔵</div>
       <div class="bx-title" style="justify-content:center;font-size:13px;">Gemini API</div>
-      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">Google AI Studio<br>google-genai SDK</div>
+      <div style="font-size:10.5px;color:#546e7a;line-height:1.5;">Google AI Studio<br>google-genai SDK · gemini-2.5-flash</div>
     </div>
     <div class="bx" style="flex:1;text-align:center;background:#f5f5f5;border:2px dashed #ccc;">
       <div style="font-size:22px;">⚪</div>
@@ -345,7 +418,101 @@ body{
 </div>
 
 <!-- ================================================================ -->
-<!--                      第 5 层：部署方案层                          -->
+<!--                   第 5 层：工程化 & 配置层                         -->
+<!-- ================================================================ -->
+<div class="row">
+  <div class="layer-tag" style="background:#e0f2f1;">工程化配置</div>
+  <div class="layer-body">
+    <div class="bx bg-teal">
+      <div class="bx-title" style="font-size:15px;margin-bottom:8px;">Monorepo 工程化 & 开发配置 <span class="bx-sub">pnpm workspace · uv · concurrently</span></div>
+
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <!-- Monorepo 结构 -->
+        <div class="cfg-card">
+          <div class="cfg-t">📦 Monorepo 结构 <span class="bx-sub">(pnpm-workspace.yaml)</span></div>
+          <div class="cfg-body">
+            工作区包含三个子包：<br>
+            • <code>packages/web</code> — Next.js 网页前端<br>
+            • <code>packages/extension</code> — Chrome 浏览器扩展<br>
+            • <code>shared</code> — 共用 TypeScript 类型库<br>
+            <div style="margin-top:3px;">跨包引用：<code>"shared": "workspace:*"</code></div>
+          </div>
+        </div>
+
+        <!-- 根 package.json -->
+        <div class="cfg-card">
+          <div class="cfg-t">📜 根 package.json <span class="bx-sub">(tom-translate-app)</span></div>
+          <div class="cfg-body">
+            <strong>开发脚本：</strong><br>
+            • <code>dev:web</code> — pnpm --filter web dev<br>
+            • <code>dev:ext</code> — pnpm --filter extension dev<br>
+            • <code>dev:backend</code> — uv run uvicorn --reload --port 8000<br>
+            • <code>dev</code> — concurrently 同时起后端 + Web<br>
+            <strong>构建脚本：</strong><br>
+            • <code>build:web</code> / <code>build:ext</code>
+          </div>
+        </div>
+
+        <!-- Python 依赖 -->
+        <div class="cfg-card">
+          <div class="cfg-t">🐍 Python 依赖 <span class="bx-sub">(packages/backend/pyproject.toml · packages/backend/uv.lock)</span></div>
+          <div class="cfg-body">
+            <strong>运行时：</strong><br>
+            fastapi · uvicorn[standard] · pydantic · pydantic-settings<br>
+            httpx · redis[hiredis] · openai · google-genai<br>
+            <strong>开发环境（optional-dependencies.dev）：</strong><br>
+            pytest · pytest-asyncio · ruff<br>
+            <div style="margin-top:3px;">包管理器：<code>uv</code>（替代 pip + venv）</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <!-- 环境变量 -->
+        <div class="cfg-card" style="flex:1.3;">
+          <div class="cfg-t">🔐 环境变量 <span class="bx-sub">(.env / .env.example)</span></div>
+          <div class="cfg-body" style="display:flex;gap:15px;">
+            <div style="flex:1;">
+              <strong>翻译引擎 API Keys：</strong><br>
+              • <code>DEEPSEEK_API_KEY</code> / <code>DEEPSEEK_BASE_URL</code> / <code>DEEPSEEK_MODEL</code><br>
+              • <code>GEMINI_API_KEY</code> / <code>GEMINI_BASE_URL</code> / <code>GEMINI_MODEL</code><br>
+              • <code>BAIDU_APP_ID</code> / <code>BAIDU_SECRET_KEY</code>（预留）
+            </div>
+            <div style="flex:1;">
+              <strong>基础设施 & 安全：</strong><br>
+              • <code>REDIS_URL</code> — Redis 连接地址<br>
+              • <code>CORS_ORIGINS</code> — 允许的跨域来源<br>
+              • <code>API_SECRET_KEY</code> — 可选接口认证密钥<br>
+              • <code>RATE_LIMIT_PER_MINUTE</code> — 限流阈值（默认 30）<br>
+              • <code>FREE_DAILY_PAGE/TEXT_TRANSLATIONS</code> — 免费额度
+            </div>
+          </div>
+        </div>
+
+        <!-- 开发工具链 -->
+        <div class="cfg-card" style="flex:0.7;">
+          <div class="cfg-t">🛠️ 开发工具链</div>
+          <div class="cfg-body">
+            <strong>前端：</strong>pnpm (workspace) · TypeScript 5.5+ · ESLint · Tailwind CSS<br>
+            <strong>后端：</strong>uv (Python) · Ruff (格式化+Lint) · pytest<br>
+            <strong>构建：</strong>Next.js (Web) · WXT + Vite (Extension)<br>
+            <strong>协同：</strong>concurrently · Git
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 连线 -->
+<div class="arrow-row" style="justify-content:center;">
+  <div class="spacer"></div>
+  <div style="text-align:center;"><div class="carrow">▼</div></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ================================================================ -->
+<!--                      第 6 层：部署方案层                          -->
 <!-- ================================================================ -->
 <div class="row">
   <div class="layer-tag" style="background:#e0e0e0;">部署方案层</div>
@@ -359,7 +526,6 @@ body{
       </div>
       <div style="font-size:11.5px;color:#37474f;margin-bottom:5px;">月成本：<strong>¥0 ~ ¥70</strong>，运维复杂度：⭐ 极低</div>
 
-      <!-- 部署流程 -->
       <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#546e7a;margin-bottom:8px;flex-wrap:wrap;">
         <span style="background:#fff;padding:1px 7px;border-radius:3px;border:1px solid #b0bec5;">GitHub push</span>→
         <span style="background:#fff;padding:1px 7px;border-radius:3px;border:1px solid #b0bec5;">Vercel auto-build &amp; deploy</span>
@@ -401,7 +567,7 @@ body{
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
         <div class="bx-title">Route B —— 自托管 VPS <span class="badge b-org">完全可控 / 长期运营</span></div>
       </div>
-      <div style="font-size:11.5px;color:#37474f;margin-bottom:5px;">月成本：<strong>¥55 ~ ¥70</strong>，Aliyun/Tencent Cloud HK, 2-core 2G, 免备案</div>
+      <div style="font-size:11.5px;color:#37474f;margin-bottom:5px;">月成本：<strong>¥100 ~ ¥200</strong>，Aliyun/Tencent Cloud HK, 2-core 2G, 免备案</div>
 
       <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#546e7a;">
@@ -416,7 +582,6 @@ body{
       </div>
 
       <div style="display:flex;gap:10px;align-items:flex-start;">
-        <!-- VPS 框 -->
         <div class="vps" style="flex:1;">
           <span class="vps-lbl">VPS Cloud Server (Alibaba Cloud Linux / Ubuntu)</span>
           <div style="display:flex;gap:6px;margin-top:3px;">
@@ -441,7 +606,6 @@ body{
           <div class="volbar">📂 Volumes: redis_data / certbot_www / certbot_conf</div>
         </div>
 
-        <!-- DNS + Nginx 备注 -->
         <div style="min-width:220px;">
           <div class="dns">
             <div class="dns-t">🌍 DNS 配置</div>
@@ -462,8 +626,8 @@ body{
   </div>
 </div>
 
-<div style="text-align:center;margin-top:20px;font-size:10.5px;color:#ccc;">
-  Tom TranslateApp System Architecture v1.0 · 2026.03.25
+<div style="text-align:center;margin-top:24px;font-size:10.5px;color:#ccc;">
+  Tom TranslateApp System Architecture v2.0 · 2026.03.26
 </div>
 
 </body>
