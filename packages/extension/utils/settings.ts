@@ -14,7 +14,7 @@ export interface ExtensionSettings {
 }
 
 const DEFAULT_SETTINGS: ExtensionSettings = {
-  defaultEngine: "deepseek",
+  defaultEngine: "libre",
   defaultTargetLang: "zh-CN",
   autoTranslate: true,
   apiUrl: "http://localhost:8000",

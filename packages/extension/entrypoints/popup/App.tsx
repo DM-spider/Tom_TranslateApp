@@ -3,6 +3,7 @@ import type { EngineType, LangCode, ExtensionMessage } from "shared";
 import type { ExtensionSettings, DisplayMode } from "@/utils/settings";
 
 const ENGINES: { id: EngineType; label: string }[] = [
+  { id: "libre", label: "机器翻译（免费）" },
   { id: "deepseek", label: "DeepSeek" },
   { id: "gemini", label: "Gemini" },
 ];

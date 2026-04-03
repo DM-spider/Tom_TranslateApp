@@ -24,6 +24,7 @@ class EngineType(str, Enum):
     """可选的翻译引擎类型。前端通过传入这些值来指定使用哪个引擎。"""
     DEEPSEEK = "deepseek"
     GEMINI = "gemini"
+    LIBRE = "libre"
     BAIDU = "baidu"  # 预留，暂未实现
 
 

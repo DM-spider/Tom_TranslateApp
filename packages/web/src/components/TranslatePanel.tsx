@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRightLeft, Copy, Trash2, Check, Loader2 } from "lucide-react";
+import { ArrowRightLeft, Copy, Trash2, Check, Loader2, Send } from "lucide-react";
 import { translate, getLanguages } from "@/lib/api";
 import type { EngineType } from "shared";
 import { loadUserPreferences, saveUserPreferences } from "@/lib/storage";
@@ -28,11 +28,10 @@ export function TranslatePanel() {
   const [outputText, setOutputText] = useState("");
   const [sourceLang, setSourceLang] = useState("auto");
   const [targetLang, setTargetLang] = useState("zh-CN");
-  const [engine, setEngine] = useState<EngineType>("deepseek");
+  const [engine, setEngine] = useState<EngineType>("libre");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   const { data: languages = DEFAULT_LANGUAGES } = useQuery({
     queryKey: ["languages"],
@@ -105,18 +104,19 @@ export function TranslatePanel() {
       } else if (error?.includes("输入内容过长")) {
         setError(null);
       }
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => triggerTranslation(value), 500);
     },
-    [triggerTranslation, error]
+    [error]
   );
 
-  useEffect(() => {
-    if (inputText.trim()) {
-      triggerTranslation(inputText);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceLang, targetLang, engine]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        triggerTranslation(inputText);
+      }
+    },
+    [triggerTranslation, inputText]
+  );
 
   const handleSwapLanguages = () => {
     if (sourceLang === "auto" || mutation.isPending) return;
@@ -187,7 +187,8 @@ export function TranslatePanel() {
             <textarea
               value={inputText}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="输入要翻译的文本..."
+              onKeyDown={handleKeyDown}
+              placeholder="输入要翻译的文本... (Ctrl+Enter 翻译)"
               disabled={mutation.isPending}
               className="flex-1 resize-none border-none bg-transparent text-base leading-relaxed text-gray-800 placeholder-gray-300 focus:outline-none"
               rows={8}
@@ -196,14 +197,24 @@ export function TranslatePanel() {
               <span className="text-xs text-gray-400">
                 {inputText.length} / {MAX_INPUT_CHARS} 字符
               </span>
-              <button
-                onClick={handleClear}
-                disabled={!inputText || mutation.isPending}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 disabled:opacity-0"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                清空
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClear}
+                  disabled={!inputText || mutation.isPending}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 disabled:opacity-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  清空
+                </button>
+                <button
+                  onClick={() => triggerTranslation(inputText)}
+                  disabled={!inputText.trim() || mutation.isPending}
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-500 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  翻译
+                </button>
+              </div>
             </div>
           </div>
 

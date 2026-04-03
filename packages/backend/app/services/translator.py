@@ -18,6 +18,7 @@
 from .engines.base import BaseEngine, EngineType, TranslateRequest, TranslateResult
 from .engines.deepseek import DeepSeekEngine
 from .engines.gemini import GeminiEngine
+from .engines.libre import LibreTranslateEngine
 from .cache import TranslateCache
 
 
@@ -30,6 +31,7 @@ class TranslatorService:
         self.engines: dict[str, BaseEngine] = {
             EngineType.DEEPSEEK: DeepSeekEngine(),
             EngineType.GEMINI: GeminiEngine(),
+            EngineType.LIBRE: LibreTranslateEngine(),
         }
         self.cache = TranslateCache()
 

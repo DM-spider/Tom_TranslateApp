@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Globe, Languages } from "lucide-react";
+import { Sparkles, Globe, Languages, Cpu } from "lucide-react";
 import type { EngineType } from "shared";
 
 interface EngineSwitchProps {
@@ -10,6 +10,7 @@ interface EngineSwitchProps {
 }
 
 const ENGINES: { id: EngineType; label: string; icon: typeof Sparkles }[] = [
+  { id: "libre", label: "机器翻译（免费）", icon: Cpu },
   { id: "deepseek", label: "DeepSeek", icon: Sparkles },
   { id: "gemini", label: "Gemini", icon: Globe },
   { id: "baidu", label: "百度翻译", icon: Languages },

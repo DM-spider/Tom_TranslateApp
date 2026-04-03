@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     baidu_app_id: str = ""
     baidu_secret_key: str = ""
 
+    # ---- LibreTranslate 免费翻译引擎 ----
+    libre_translate_url: str = "http://localhost:5000"
+
     # ---- Redis 缓存连接 ----
     redis_url: str = "redis://localhost:6379/0"
 

@@ -7,6 +7,15 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_LOAD_ONLY=en,zh,ja,ko,fr,de,es,ru
+    volumes:
+      - lt_data:/home/libretranslate/.local
+
   # PostgreSQL 后期再启用
   # postgres:
   #   image: postgres:16-alpine
@@ -21,4 +30,5 @@ services:
 
 volumes:
   redis_data:
+  lt_data:
   # pg_data:

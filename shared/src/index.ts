@@ -1,6 +1,6 @@
 // ========== 翻译引擎类型 ==========
 
-export type EngineType = "deepseek" | "gemini" | "baidu";
+export type EngineType = "deepseek" | "gemini" | "libre" | "baidu";
 
 // ========== 语言代码 ==========
 
@@ -65,7 +65,7 @@ export interface UserSettings {
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  defaultEngine: "deepseek",
+  defaultEngine: "libre",
   defaultTargetLang: "zh-CN",
   autoTranslate: true,
 };
