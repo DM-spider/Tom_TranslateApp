@@ -14,7 +14,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.0", # 异步 ORM，管理用户/用量表
     "asyncpg>=0.29.0",            # PostgreSQL 异步驱动
     "python-jose[cryptography]>=3.3.0", # JWT token 生成和验证
-    "passlib[bcrypt]>=1.7.4",     # 密码哈希（bcrypt 算法）
+    "bcrypt>=3.2.0",              # 密码哈希（bcrypt 算法）
     "alembic>=1.13.0",            # 数据库迁移工具
     "email-validator>=2.0.0",     # Pydantic EmailStr 校验
 ]

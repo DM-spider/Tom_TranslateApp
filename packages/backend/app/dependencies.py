@@ -8,10 +8,11 @@
 
 from datetime import datetime, timedelta, timezone
 
+import bcrypt as _bcrypt
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,21 +22,18 @@ from app.models.user import User
 
 settings = get_settings()
 
-# 密码哈希工具
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # Bearer token 提取器（auto_error=False 使其在无 token 时不自动报错）
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
     """将明文密码哈希为 bcrypt 格式。"""
-    return pwd_context.hash(password)
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     """验证明文密码是否匹配哈希值。"""
-    return pwd_context.verify(plain, hashed)
+    return _bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def create_access_token(user_id: int) -> str:
