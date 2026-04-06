@@ -16,19 +16,18 @@ services:
     volumes:
       - lt_data:/home/libretranslate/.local
 
-  # PostgreSQL 后期再启用
-  # postgres:
-  #   image: postgres:16-alpine
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     POSTGRES_USER: translate
-  #     POSTGRES_PASSWORD: translate_dev
-  #     POSTGRES_DB: translate_db
-  #   volumes:
-  #     - pg_data:/var/lib/postgresql/data
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: translate
+      POSTGRES_PASSWORD: translate_dev
+      POSTGRES_DB: translate_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
 volumes:
   redis_data:
   lt_data:
-  # pg_data:
+  pg_data:

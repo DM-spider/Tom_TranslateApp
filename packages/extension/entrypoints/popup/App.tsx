@@ -27,6 +27,14 @@ const LANGUAGES: { code: Exclude<LangCode, "auto">; name: string }[] = [
 
 type PageState = "idle" | "translating" | "done";
 
+interface AuthState {
+  loggedIn: boolean;
+  email?: string;
+  plan?: string;
+  todayUsage?: number;
+  dailyLimit?: number;
+}
+
 export default function App() {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -34,6 +42,15 @@ export default function App() {
   const [pageState, setPageState] = useState<PageState>("idle");
   const [hasTranslations, setHasTranslations] = useState(false);
   const [tab, setTab] = useState<"actions" | "settings">("actions");
+
+  // 认证相关状态
+  const [authState, setAuthState] = useState<AuthState>({ loggedIn: false });
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginMode, setLoginMode] = useState<"login" | "register">("login");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const queryPageState = useCallback(async () => {
     try {
@@ -59,11 +76,77 @@ export default function App() {
     const msg: ExtensionMessage = { type: "GET_SETTINGS", payload: null };
     chrome.runtime.sendMessage(msg).then((res) => {
       if (res?.type === "SETTINGS") {
-        setSettings(res.payload as ExtensionSettings);
+        const s = res.payload as ExtensionSettings;
+        setSettings(s);
+        // 如果已有 token，获取用户信息
+        if (s.authToken) {
+          fetchUserInfo(s.apiUrl, s.authToken);
+        }
       }
     });
     queryPageState();
   }, [queryPageState]);
+
+  async function fetchUserInfo(apiUrl: string, token: string) {
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuthState({
+          loggedIn: true,
+          email: data.email,
+          plan: data.plan,
+          todayUsage: data.today_llm_usage,
+          dailyLimit: data.daily_limit,
+        });
+      } else {
+        // token 过期或无效，清除
+        setAuthState({ loggedIn: false });
+        if (settings) {
+          updateSettings({ ...settings, authToken: "" });
+        }
+      }
+    } catch {
+      // 网络错误，不清除 token
+    }
+  }
+
+  async function handleAuth() {
+    if (!settings) return;
+    setLoginError(null);
+    setLoginLoading(true);
+    const endpoint = loginMode === "register" ? "register" : "login";
+    try {
+      const res = await fetch(`${settings.apiUrl}/api/v1/auth/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.detail || `请求失败 (${res.status})`);
+      }
+      const data = await res.json();
+      const token = data.access_token as string;
+      updateSettings({ ...settings, authToken: token });
+      setShowLogin(false);
+      setLoginEmail("");
+      setLoginPassword("");
+      await fetchUserInfo(settings.apiUrl, token);
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  function handleLogout() {
+    if (!settings) return;
+    updateSettings({ ...settings, authToken: "" });
+    setAuthState({ loggedIn: false });
+  }
 
   function updateSettings(next: ExtensionSettings) {
     setSettings(next);
@@ -317,6 +400,80 @@ export default function App() {
             <p className="mt-1 text-[11px] text-gray-400">
               后端设置了 API_SECRET_KEY 时需填写
             </p>
+          </div>
+
+          {/* 用户认证 */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+              账户（AI 翻译需登录）
+            </label>
+            {authState.loggedIn ? (
+              <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-700">{authState.email}</span>
+                  <span className="text-[11px] text-gray-400">
+                    {authState.plan === "pro" ? "Pro" : "Free"} · AI 翻译: {authState.todayUsage}/{authState.dailyLimit === 999999 ? "∞" : authState.dailyLimit}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                >
+                  退出
+                </button>
+              </div>
+            ) : showLogin ? (
+              <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3">
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="邮箱"
+                  className="w-full rounded border border-gray-200 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
+                />
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="密码（至少 6 位）"
+                  className="w-full rounded border border-gray-200 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
+                />
+                {loginError && (
+                  <p className="text-[11px] text-red-500">{loginError}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAuth}
+                    disabled={loginLoading || !loginEmail || !loginPassword}
+                    className="flex-1 rounded bg-blue-500 py-1.5 text-xs font-medium text-white hover:bg-blue-600 disabled:bg-gray-300"
+                  >
+                    {loginLoading ? "..." : loginMode === "login" ? "登录" : "注册"}
+                  </button>
+                  <button
+                    onClick={() => setShowLogin(false)}
+                    className="rounded px-2 py-1.5 text-xs text-gray-400 hover:bg-gray-100"
+                  >
+                    取消
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    setLoginMode(loginMode === "login" ? "register" : "login");
+                    setLoginError(null);
+                  }}
+                  className="text-center text-[11px] text-blue-500 hover:text-blue-600"
+                >
+                  {loginMode === "login" ? "没有账户？注册" : "已有账户？登录"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
+              >
+                登录 / 注册
+              </button>
+            )}
           </div>
 
           {/* Auto Translate */}

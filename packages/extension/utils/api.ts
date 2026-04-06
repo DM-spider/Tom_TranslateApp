@@ -4,6 +4,7 @@ export interface TranslateParams {
   engine: string;
   apiUrl: string;
   apiKey?: string;
+  authToken?: string;
 }
 
 export interface TranslateBatchParams {
@@ -12,6 +13,7 @@ export interface TranslateBatchParams {
   engine: string;
   apiUrl: string;
   apiKey?: string;
+  authToken?: string;
 }
 
 export interface TranslateApiResult {
@@ -26,7 +28,8 @@ const REQUEST_TIMEOUT_MS = 30_000;
 async function callTranslateApi(
   apiUrl: string,
   body: { texts: string[]; source_lang: string; target_lang: string; engine: string },
-  apiKey?: string
+  apiKey?: string,
+  authToken?: string
 ): Promise<TranslateApiResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -34,6 +37,9 @@ async function callTranslateApi(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (apiKey) {
     headers["X-API-Key"] = apiKey;
+  }
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
   }
 
   let res: Response;
@@ -88,6 +94,7 @@ export async function translateText(
       engine: params.engine,
     },
     params.apiKey,
+    params.authToken,
   );
 }
 
@@ -103,5 +110,6 @@ export async function translateBatch(
       engine: params.engine,
     },
     params.apiKey,
+    params.authToken,
   );
 }

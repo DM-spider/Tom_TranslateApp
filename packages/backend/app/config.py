@@ -47,6 +47,14 @@ class Settings(BaseSettings):
     free_daily_page_translations: int = 10   # 每日免费整页翻译次数
     free_daily_text_translations: int = 100  # 每日免费文本翻译次数
 
+    # ---- 数据库 ----
+    database_url: str = "postgresql+asyncpg://translate:translate_dev@localhost:5432/translate_db"
+
+    # ---- JWT 认证 ----
+    jwt_secret_key: str = "change-me-in-production-use-a-long-random-string"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_days: int = 7  # access_token 有效期（天）
+
     # ---- 简易认证 ----
     api_secret_key: str = ""  # 设置后所有翻译接口需携带 X-API-Key 头
 

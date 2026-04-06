@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRightLeft, Copy, Trash2, Check, Loader2, Send } from "lucide-react";
+import { ArrowRightLeft, Copy, Trash2, Check, Loader2, Send, User, LogOut } from "lucide-react";
 import { translate, getLanguages } from "@/lib/api";
 import type { EngineType } from "shared";
 import { loadUserPreferences, saveUserPreferences } from "@/lib/storage";
+import { isLoggedIn, fetchMe, logout as doLogout, type UserInfo } from "@/lib/auth";
 import { LanguageSelect } from "./LanguageSelect";
 import { EngineSwitch } from "./EngineSwitch";
+import { AuthModal } from "./AuthModal";
 
 const DEFAULT_LANGUAGES: Record<string, string> = {
   auto: "自动检测",
@@ -32,6 +34,22 @@ export function TranslatePanel() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  // 加载用户登录状态
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+    if (isLoggedIn()) {
+      fetchMe()
+        .then(setUserInfo)
+        .catch(() => {
+          setUserInfo(null);
+          setLoggedIn(false);
+        });
+    }
+  }, []);
 
   const { data: languages = DEFAULT_LANGUAGES } = useQuery({
     queryKey: ["languages"],
@@ -47,6 +65,10 @@ export function TranslatePanel() {
     },
     onError: (err: Error) => {
       setError(err.message);
+      // 如果是 403（需要登录），弹出登录弹窗
+      if (err.message.includes("需要登录")) {
+        setShowAuthModal(true);
+      }
     },
   });
 
@@ -99,6 +121,11 @@ export function TranslatePanel() {
   const handleInputChange = useCallback(
     (value: string) => {
       setInputText(value);
+      if (!value.trim()) {
+        setOutputText("");
+        setError(null);
+        return;
+      }
       if (value.length > MAX_INPUT_CHARS) {
         setError(`输入内容过长，请控制在 ${MAX_INPUT_CHARS} 字符以内`);
       } else if (error?.includes("输入内容过长")) {
@@ -142,6 +169,55 @@ export function TranslatePanel() {
 
   return (
     <div className="mx-auto w-full max-w-5xl">
+      {/* 用户状态栏 */}
+      <div className="mb-4 flex items-center justify-end gap-3 text-sm">
+        {loggedIn && userInfo ? (
+          <>
+            <span className="flex items-center gap-1.5 text-gray-500">
+              <User className="h-4 w-4" />
+              {userInfo.email}
+              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+                {userInfo.plan === "pro" ? "Pro" : "Free"}
+              </span>
+            </span>
+            <span className="text-xs text-gray-400">
+              AI 翻译: {userInfo.today_llm_usage}/{userInfo.daily_limit === 999999 ? "∞" : userInfo.daily_limit}
+            </span>
+            <button
+              onClick={() => {
+                doLogout();
+                setLoggedIn(false);
+                setUserInfo(null);
+              }}
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              退出
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
+          >
+            <User className="h-3.5 w-3.5" />
+            登录 / 注册
+          </button>
+        )}
+      </div>
+
+      {/* 登录/注册弹窗 */}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => {
+            setShowAuthModal(false);
+            setLoggedIn(true);
+            fetchMe().then(setUserInfo).catch(() => {});
+          }}
+        />
+      )}
+
       {/* 引擎切换 */}
       <div className="mb-6 flex justify-center">
         <EngineSwitch

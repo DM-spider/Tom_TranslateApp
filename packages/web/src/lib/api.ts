@@ -1,4 +1,5 @@
 import type { TranslateRequest, TranslateResult } from "shared";
+import { authHeaders } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 15000;
@@ -32,7 +33,7 @@ export async function translate(
   try {
     res = await fetch(`${API_BASE}/api/v1/translate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({
         texts: req.texts,
         source_lang: req.sourceLang,

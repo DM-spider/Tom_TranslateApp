@@ -8,7 +8,7 @@ export interface UserPreferences {
   engine: EngineType;
 }
 
-const VALID_ENGINES: EngineType[] = ["deepseek", "gemini", "baidu"];
+const VALID_ENGINES: EngineType[] = ["deepseek", "gemini", "baidu", "libre"];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object";

@@ -48,6 +48,7 @@ export default defineBackground(() => {
           engine: settings.defaultEngine,
           apiUrl: settings.apiUrl,
           apiKey: settings.apiKey,
+          authToken: settings.authToken,
         });
         await chrome.tabs.sendMessage(tab.id, {
           type: "SHOW_TRANSLATION",
@@ -110,6 +111,7 @@ async function handleMessage(
         engine: payload.engine || settings.defaultEngine,
         apiUrl: settings.apiUrl,
         apiKey: settings.apiKey,
+        authToken: settings.authToken,
       });
       return { type: "TRANSLATE_RESULT", payload: result };
     }
@@ -129,6 +131,7 @@ async function handleMessage(
         engine,
         apiUrl: settings.apiUrl,
         apiKey: settings.apiKey,
+        authToken: settings.authToken,
       });
 
       if (result.translatedTexts.length !== payload.texts.length) {
@@ -155,6 +158,7 @@ async function handleMessage(
                   engine,
                   apiUrl: settings.apiUrl,
                   apiKey: settings.apiKey,
+                  authToken: settings.authToken,
                 });
                 return single.translatedTexts[0] || "";
               } catch {

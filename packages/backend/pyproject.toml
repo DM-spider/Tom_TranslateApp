@@ -11,6 +11,12 @@ dependencies = [
     "redis[hiredis]>=5.0.0",     # 异步 Redis 客户端，缓存翻译结果
     "openai>=1.40.0",            # DeepSeek 的 API 兼容 OpenAI 协议，所以用这个 SDK 来调用
     "google-genai>=1.0.0",       # Google Gemini SDK，调用 Gemini 翻译引擎
+    "sqlalchemy[asyncio]>=2.0.0", # 异步 ORM，管理用户/用量表
+    "asyncpg>=0.29.0",            # PostgreSQL 异步驱动
+    "python-jose[cryptography]>=3.3.0", # JWT token 生成和验证
+    "passlib[bcrypt]>=1.7.4",     # 密码哈希（bcrypt 算法）
+    "alembic>=1.13.0",            # 数据库迁移工具
+    "email-validator>=2.0.0",     # Pydantic EmailStr 校验
 ]
 
 [project.optional-dependencies]

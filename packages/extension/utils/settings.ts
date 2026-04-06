@@ -11,6 +11,7 @@ export interface ExtensionSettings {
   apiUrl: string;
   apiKey: string;
   displayMode: DisplayMode;
+  authToken: string;  // JWT token，登录后存储
 }
 
 const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -20,6 +21,7 @@ const DEFAULT_SETTINGS: ExtensionSettings = {
   apiUrl: "http://localhost:8000",
   apiKey: "",
   displayMode: "bilingual",
+  authToken: "",
 };
 
 export async function getSettings(): Promise<ExtensionSettings> {

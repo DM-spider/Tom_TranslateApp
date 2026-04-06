@@ -19,7 +19,8 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import get_settings
-from app.routers import translate
+from app.routers import translate, auth
+from app.database import init_db, close_db
 
 settings = get_settings()
 
@@ -89,7 +90,7 @@ app.add_middleware(
     allow_origins=[o.strip() for o in settings.cors_origins.split(",") if o.strip()],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-API-Key"],
+    allow_headers=["Content-Type", "X-API-Key", "Authorization"],
 )
 
 app.add_middleware(RateLimitMiddleware, max_requests=settings.rate_limit_per_minute)
@@ -98,6 +99,19 @@ if settings.api_secret_key:
     app.add_middleware(ApiKeyMiddleware, secret_key=settings.api_secret_key)
 
 app.include_router(translate.router)
+app.include_router(auth.router)
+
+
+@app.on_event("startup")
+async def startup():
+    """应用启动时初始化数据库表。"""
+    await init_db()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    """应用关闭时释放数据库连接池。"""
+    await close_db()
 
 
 @app.get("/health")

@@ -11,9 +11,18 @@
   加上版本号 v1，方便未来做不兼容升级时新增 /api/v2 而不影响旧接口。
 """
 
-from fastapi import APIRouter, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException
 from redis.exceptions import ConnectionError as RedisConnectionError
-from app.services.engines.base import TranslateRequest, TranslateResult
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import get_db
+from app.dependencies import get_optional_user
+from app.models.user import User
+from app.models.usage import Usage
+from app.services.engines.base import EngineType, TranslateRequest, TranslateResult
 from app.services.translator import TranslatorService
 
 # 创建路由器，统一前缀 /api/v1，在自动文档中归类为 "translate" 标签
@@ -39,9 +48,19 @@ SUPPORTED_LANGUAGES = {
 
 
 @router.post("/translate", response_model=TranslateResult)
-async def translate(req: TranslateRequest):
+async def translate(
+    req: TranslateRequest,
+    user: User | None = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+):
     """
     核心翻译接口。
+
+    配额规则：
+    - 免费引擎（libre）：任何人都可用，无需登录
+    - LLM 引擎（deepseek / gemini）：需要登录
+      - free 用户：每日 10 次
+      - pro 用户：不限
 
     请求示例（JSON）：
     {
@@ -50,17 +69,48 @@ async def translate(req: TranslateRequest):
         "target_lang": "zh-CN",
         "engine": "deepseek"
     }
-
-    返回示例：
-    {
-        "translated_texts": ["你好，世界！", "你好吗？"],
-        "source_lang": "auto",
-        "engine_used": "deepseek",
-        "tokens_used": 125
-    }
     """
     try:
-        return await translator.translate(req)
+        # 免费引擎：任何人都可以用
+        if req.engine == EngineType.LIBRE:
+            return await translator.translate(req)
+
+        # LLM 引擎：需要登录
+        if user is None:
+            raise HTTPException(
+                status_code=403,
+                detail="使用 AI 翻译需要登录，免费机器翻译无需登录",
+            )
+
+        # 检查配额
+        today = date.today()
+        daily_limit = 999999 if user.plan == "pro" else 10
+
+        result = await db.execute(
+            select(Usage).where(Usage.user_id == user.id, Usage.date == today)
+        )
+        usage = result.scalar_one_or_none()
+        today_count = usage.llm_count if usage else 0
+
+        if today_count >= daily_limit:
+            raise HTTPException(
+                status_code=429,
+                detail=f"今日 AI 翻译次数已用完（{daily_limit}次），请使用免费机器翻译或升级 Pro",
+            )
+
+        # 执行翻译
+        translate_result = await translator.translate(req)
+
+        # 记录用量
+        if usage:
+            usage.llm_count += 1
+            await db.commit()
+        else:
+            new_usage = Usage(user_id=user.id, date=today, llm_count=1)
+            db.add(new_usage)
+            await db.commit()
+
+        return translate_result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RedisConnectionError:
