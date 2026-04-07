@@ -23,23 +23,23 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _uses_localhost(url: str) -> bool:
-  if not url:
-    return False
+    if not url:
+        return False
 
-  parsed = urlparse(url)
-  host = (parsed.hostname or "").lower()
-  return host in {"localhost", "127.0.0.1", "0.0.0.0"}
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    return host in {"localhost", "127.0.0.1", "0.0.0.0"}
 
 
 def _is_local_origin(origin: str) -> bool:
-  lowered = origin.lower()
-  return "localhost" in lowered or "127.0.0.1" in lowered or "0.0.0.0" in lowered
+    lowered = origin.lower()
+    return "localhost" in lowered or "127.0.0.1" in lowered or "0.0.0.0" in lowered
 
 
 class Settings(BaseSettings):
     """应用全局配置，所有字段都可被 .env 文件中的同名变量覆盖。"""
 
-  deployment_mode: str = "local"
+    deployment_mode: str = "local"
 
     # ---- DeepSeek 翻译引擎 ----
     deepseek_api_key: str = ""
@@ -73,8 +73,8 @@ class Settings(BaseSettings):
 
     # ---- 数据库 ----
     database_url: str = Field(
-      default="postgresql+asyncpg://translate:translate_dev@localhost:5432/translate_db",
-      min_length=1,
+        default="postgresql+asyncpg://translate:translate_dev@localhost:5432/translate_db",
+        min_length=1,
     )
 
     # ---- JWT 认证 ----
@@ -87,50 +87,50 @@ class Settings(BaseSettings):
 
     # 直接使用绝对路径定位项目根目录 .env，避免因启动工作目录不同而读错配置。
     model_config = SettingsConfigDict(
-      env_file=PROJECT_ROOT / ".env",
-      env_file_encoding="utf-8",
-      case_sensitive=False,
-      extra="ignore",
+        env_file=PROJECT_ROOT / ".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
     )
 
     @model_validator(mode="after")
     def validate_security_defaults(self):
-      allowed_modes = {"local", "docker_host_nginx", "managed"}
-      if self.deployment_mode not in allowed_modes:
-        raise ValueError(
-          f"DEPLOYMENT_MODE 必须是 {', '.join(sorted(allowed_modes))} 之一"
-        )
-
-      if not self.debug and self.jwt_secret_key == "change-me-in-production-use-a-long-random-string":
+        allowed_modes = {"local", "docker_host_nginx", "managed"}
+        if self.deployment_mode not in allowed_modes:
             raise ValueError(
-          "生产环境必须显式设置 JWT_SECRET_KEY"
-            )
-      if not self.database_url.startswith("postgresql+asyncpg://"):
-        raise ValueError("DATABASE_URL 必须使用 PostgreSQL asyncpg 连接串")
-
-      if self.deployment_mode != "local":
-        invalid_service_urls = {
-          "REDIS_URL": self.redis_url,
-          "DATABASE_URL": self.database_url,
-          "LIBRE_TRANSLATE_URL": self.libre_translate_url,
-        }
-        for env_name, value in invalid_service_urls.items():
-          if _uses_localhost(value):
-            raise ValueError(
-              f"{env_name} 不能在 {self.deployment_mode} 模式下使用 localhost/127.0.0.1/0.0.0.0"
+                f"DEPLOYMENT_MODE 必须是 {', '.join(sorted(allowed_modes))} 之一"
             )
 
-        local_origins = [
-          origin
-          for origin in self.cors_origins.split(",")
-          if origin.strip() and _is_local_origin(origin.strip())
-        ]
-        if local_origins:
-          raise ValueError(
-            "生产部署时 CORS_ORIGINS 不能包含本地地址: " + ", ".join(local_origins)
-          )
+        if not self.debug and self.jwt_secret_key == "change-me-in-production-use-a-long-random-string":
+            raise ValueError(
+                "生产环境必须显式设置 JWT_SECRET_KEY"
+            )
+        if not self.database_url.startswith("postgresql+asyncpg://"):
+            raise ValueError("DATABASE_URL 必须使用 PostgreSQL asyncpg 连接串")
 
-      return self
+        if self.deployment_mode != "local":
+            invalid_service_urls = {
+                "REDIS_URL": self.redis_url,
+                "DATABASE_URL": self.database_url,
+                "LIBRE_TRANSLATE_URL": self.libre_translate_url,
+            }
+            for env_name, value in invalid_service_urls.items():
+                if _uses_localhost(value):
+                    raise ValueError(
+                        f"{env_name} 不能在 {self.deployment_mode} 模式下使用 localhost/127.0.0.1/0.0.0.0"
+                    )
+
+            local_origins = [
+                origin
+                for origin in self.cors_origins.split(",")
+                if origin.strip() and _is_local_origin(origin.strip())
+            ]
+            if local_origins:
+                raise ValueError(
+                    "生产部署时 CORS_ORIGINS 不能包含本地地址: " + ", ".join(local_origins)
+                )
+
+        return self
 
 
 @lru_cache

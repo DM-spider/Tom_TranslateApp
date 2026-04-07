@@ -38,4 +38,4 @@ COPY --from=builder /app/packages/web/.next/static ./packages/web/.next/static
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "packages/web/server.js"]
