@@ -10,8 +10,15 @@
   get_settings() 都返回同一个实例，避免重复读取文件。
 """
 
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pathlib import Path
+
+from pydantic import model_validator
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
@@ -48,7 +55,10 @@ class Settings(BaseSettings):
     free_daily_text_translations: int = 100  # 每日免费文本翻译次数
 
     # ---- 数据库 ----
-    database_url: str = "postgresql+asyncpg://translate:translate_dev@localhost:5432/translate_db"
+    database_url: str = Field(
+      default="postgresql+asyncpg://translate:translate_dev@localhost:5432/translate_db",
+      min_length=1,
+    )
 
     # ---- JWT 认证 ----
     jwt_secret_key: str = "change-me-in-production-use-a-long-random-string"
@@ -58,9 +68,21 @@ class Settings(BaseSettings):
     # ---- 简易认证 ----
     api_secret_key: str = ""  # 设置后所有翻译接口需携带 X-API-Key 头
 
-    # pydantic-settings 的内部配置：指定 .env 文件路径
-    # 路径是相对于 uvicorn 启动时的工作目录（packages/backend/），所以 ../../.env 指向项目根目录
-    model_config = {"env_file": "../../.env", "env_file_encoding": "utf-8"}
+    # 直接使用绝对路径定位项目根目录 .env，避免因启动工作目录不同而读错配置。
+    model_config = SettingsConfigDict(
+      env_file=PROJECT_ROOT / ".env",
+      env_file_encoding="utf-8",
+      case_sensitive=False,
+      extra="ignore",
+    )
+
+    @model_validator(mode="after")
+    def validate_security_defaults(self):
+      if not self.debug and self.jwt_secret_key == "change-me-in-production-use-a-long-random-string":
+        raise ValueError("生产环境必须显式设置 JWT_SECRET_KEY")
+      if not self.database_url.startswith("postgresql+asyncpg://"):
+        raise ValueError("DATABASE_URL 必须使用 PostgreSQL asyncpg 连接串")
+      return self
 
 
 @lru_cache

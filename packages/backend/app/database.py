@@ -6,6 +6,7 @@
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+
 from app.config import get_settings
 
 settings = get_settings()
@@ -13,6 +14,7 @@ settings = get_settings()
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
+    pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
 )
@@ -33,6 +35,9 @@ async def get_db():
 
 async def init_db():
     """创建所有表（开发阶段用，生产环境应使用 Alembic 迁移）。"""
+    from app.models import usage as _usage  # noqa: F401
+    from app.models import user as _user  # noqa: F401
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

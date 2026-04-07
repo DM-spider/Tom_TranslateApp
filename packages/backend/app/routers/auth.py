@@ -10,8 +10,9 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -30,13 +31,27 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 # ---- 请求/响应模型 ----
 
 class RegisterRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return value.lower()
 
 
 class LoginRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return value.lower()
 
 
 class TokenResponse(BaseModel):
@@ -57,9 +72,6 @@ class UserInfo(BaseModel):
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """注册新用户，成功后直接返回 token（免二次登录）。"""
-    if len(req.password) < 6:
-        raise HTTPException(status_code=400, detail="密码至少 6 个字符")
-
     # 检查邮箱是否已注册
     existing = await db.execute(select(User).where(User.email == req.email))
     if existing.scalar_one_or_none() is not None:
@@ -71,7 +83,12 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
         plan="free",
     )
     db.add(user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="该邮箱已注册") from None
+
     await db.refresh(user)
 
     token = create_access_token(user.id)

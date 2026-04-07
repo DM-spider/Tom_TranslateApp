@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "translate-backend"
 version = "0.1.0"
@@ -25,3 +29,6 @@ dev = [
     "pytest-asyncio>=0.23.0",    # pytest 异步测试支持
     "ruff>=0.5.0",               # 代码格式化 + Lint 工具
 ]
+
+[tool.setuptools]
+packages = ["app"]

@@ -14,6 +14,7 @@ FastAPI 应用入口
 
 import time
 from collections import defaultdict
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,12 +24,28 @@ from app.routers import translate, auth
 from app.database import init_db, close_db
 
 settings = get_settings()
+cors_origin_values = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+cors_allow_origins = [o for o in cors_origin_values if "*" not in o]
+cors_allow_origin_regex = None
+
+if any(origin == "chrome-extension://*" for origin in cors_origin_values):
+    cors_allow_origin_regex = r"^chrome-extension://[a-z]{32}$"
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    await init_db()
+    try:
+        yield
+    finally:
+        await close_db()
 
 app = FastAPI(
     title="Tom Translate",
     version="0.1.0",
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
+    lifespan=lifespan,
 )
 
 
@@ -87,7 +104,8 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in settings.cors_origins.split(",") if o.strip()],
+    allow_origins=cors_allow_origins,
+    allow_origin_regex=cors_allow_origin_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "X-API-Key", "Authorization"],
@@ -100,18 +118,6 @@ if settings.api_secret_key:
 
 app.include_router(translate.router)
 app.include_router(auth.router)
-
-
-@app.on_event("startup")
-async def startup():
-    """应用启动时初始化数据库表。"""
-    await init_db()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    """应用关闭时释放数据库连接池。"""
-    await close_db()
 
 
 @app.get("/health")
