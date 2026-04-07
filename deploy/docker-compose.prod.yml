@@ -33,10 +33,12 @@ services:
     environment:
       - DEPLOYMENT_MODE=docker_host_nginx
       - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-translate}:${POSTGRES_PASSWORD:-translate_prod}@db:5432/${POSTGRES_DB:-translate_db}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       - redis
+      - db
     networks:
       - app-network
     healthcheck:
@@ -60,8 +62,21 @@ services:
     networks:
       - app-network
 
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-translate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-translate_prod}
+      POSTGRES_DB: ${POSTGRES_DB:-translate_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
 volumes:
   redis_data:
+  postgres_data:
 
 networks:
   app-network:
