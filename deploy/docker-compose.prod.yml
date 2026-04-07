@@ -4,7 +4,7 @@ services:
       context: ..
       dockerfile: packages/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.tomtranslate.com}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://tomtranslate.com}
     restart: always
     ports:
       - "127.0.0.1:3000:3000"
