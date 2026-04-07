@@ -5,9 +5,9 @@ WORKDIR /app
 RUN pip install uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv pip install --system -e .
-
 COPY app/ ./app/
+
+RUN uv pip install --system -e .
 
 EXPOSE 8000
 
