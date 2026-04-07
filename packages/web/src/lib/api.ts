@@ -1,7 +1,8 @@
 import type { TranslateRequest, TranslateResult } from "shared";
 import { authHeaders } from "./auth";
+import { getApiBaseUrl } from "./env";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = getApiBaseUrl();
 const REQUEST_TIMEOUT_MS = 15000;
 
 async function parseErrorResponse(res: Response): Promise<string> {

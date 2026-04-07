@@ -1,6 +1,14 @@
 import type { EngineType, LangCode } from "shared";
 
 const SETTINGS_KEY = "tom-translate-settings";
+const DEFAULT_LOCAL_API_URL = "http://localhost:8000";
+const DEFAULT_PRODUCTION_API_URL = "https://api.tomtranslate.com";
+
+function getDefaultApiUrl(): string {
+  return import.meta.env.MODE === "development"
+    ? DEFAULT_LOCAL_API_URL
+    : DEFAULT_PRODUCTION_API_URL;
+}
 
 export type DisplayMode = "bilingual" | "target-only";
 
@@ -18,7 +26,7 @@ const DEFAULT_SETTINGS: ExtensionSettings = {
   defaultEngine: "libre",
   defaultTargetLang: "zh-CN",
   autoTranslate: true,
-  apiUrl: "http://localhost:8000",
+  apiUrl: getDefaultApiUrl(),
   apiKey: "",
   displayMode: "bilingual",
   authToken: "",

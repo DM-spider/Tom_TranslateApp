@@ -375,11 +375,11 @@ export default function App() {
               onChange={(e) =>
                 updateSettings({ ...settings, apiUrl: e.target.value })
               }
-              placeholder="http://localhost:8000"
+              placeholder="https://api.tomtranslate.com"
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
             <p className="mt-1 text-[11px] text-gray-400">
-              部署后请改为生产环境地址
+              开发环境可填 http://localhost:8000，生产环境请填 https://api.tomtranslate.com
             </p>
           </div>
 

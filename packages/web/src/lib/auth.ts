@@ -7,7 +7,9 @@
  * - 请求拦截：自动在 fetch 中附带 Authorization 头
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { getApiBaseUrl } from "./env";
+
+const API_BASE = getApiBaseUrl();
 const TOKEN_KEY = "tom-translate.auth.token";
 
 // ---- Token 管理 ----
