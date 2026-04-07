@@ -1,14 +1,7 @@
 import type { EngineType, LangCode } from "shared";
 
 const SETTINGS_KEY = "tom-translate-settings";
-const DEFAULT_LOCAL_API_URL = "http://localhost:8000";
-const DEFAULT_PRODUCTION_API_URL = "https://api.tomtranslate.com";
-
-function getDefaultApiUrl(): string {
-  return import.meta.env.MODE === "development"
-    ? DEFAULT_LOCAL_API_URL
-    : DEFAULT_PRODUCTION_API_URL;
-}
+const DEFAULT_API_URL = "https://api.tomtranslate.com";
 
 export type DisplayMode = "bilingual" | "target-only";
 
@@ -19,14 +12,14 @@ export interface ExtensionSettings {
   apiUrl: string;
   apiKey: string;
   displayMode: DisplayMode;
-  authToken: string;  // JWT token，登录后存储
+  authToken: string;
 }
 
 const DEFAULT_SETTINGS: ExtensionSettings = {
   defaultEngine: "libre",
   defaultTargetLang: "zh-CN",
   autoTranslate: true,
-  apiUrl: getDefaultApiUrl(),
+  apiUrl: DEFAULT_API_URL,
   apiKey: "",
   displayMode: "bilingual",
   authToken: "",
