@@ -115,6 +115,8 @@ async def translate(
         raise HTTPException(status_code=400, detail=str(e))
     except RedisConnectionError:
         raise HTTPException(status_code=503, detail="缓存服务暂时不可用，请稍后重试")
+    except HTTPException:
+        raise
     except Exception as e:
         import logging
         logging.exception("翻译引擎调用失败")
