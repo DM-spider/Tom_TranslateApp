@@ -40,6 +40,7 @@ services:
     depends_on:
       - redis
       - db
+      - libretranslate
     networks:
       - app-network
     healthcheck:
@@ -75,9 +76,20 @@ services:
     networks:
       - app-network
 
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    restart: always
+    environment:
+      - LT_LOAD_ONLY=zh,en,ja,ko,fr,de,es,ru
+    volumes:
+      - lt_data:/home/libretranslate/.local
+    networks:
+      - app-network
+
 volumes:
   redis_data:
   postgres_data:
+  lt_data:
 
 networks:
   app-network:
