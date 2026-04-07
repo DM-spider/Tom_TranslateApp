@@ -19,7 +19,13 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+# 本地: packages/backend/app/config.py → parents[3] = 项目根目录
+# Docker: /app/app/config.py → parents[1] = /app（层级不够，取容器工作目录）
+_config_path = Path(__file__).resolve()
+try:
+    PROJECT_ROOT = _config_path.parents[3]
+except IndexError:
+    PROJECT_ROOT = _config_path.parent.parent
 
 
 def _uses_localhost(url: str) -> bool:
